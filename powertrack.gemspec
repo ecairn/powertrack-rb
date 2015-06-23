@@ -4,14 +4,14 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'powertrack/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'powertrack-rb'
+  spec.name          = 'powertrack'
   spec.version       = PowerTrack::VERSION
   spec.authors       = ['Laurent Farcy', 'Eric Wendelin']
   spec.email         = ['laurent.farcy@ecairn.com', 'me@eriwen.com']
   spec.summary       = %q{Powertrack-rb is a gem used to develop GNIP PowerTrack streaming clients.}
   spec.description   = spec.summary
   spec.homepage      = 'https://github.com/ecairn/powertrack-rb'
-  spec.license       = 'MIT license. Copyright eCairn Inc.'
+  spec.license       = 'MIT license.'
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }

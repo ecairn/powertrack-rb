@@ -6,4 +6,3 @@ class String
     PowerTrack::Rule.new(self, long, tag)
   end
 end
-
