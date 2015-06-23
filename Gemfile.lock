@@ -1,0 +1,25 @@
+PATH
+  remote: .
+  specs:
+    powertrack-rb (0.0.1)
+      multi_json (~> 1.11)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    minitest (5.7.0)
+    multi_json (1.11.1)
+    rake (10.4.2)
+    ruby-prof (0.15.8)
+    yajl-ruby (1.2.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler (~> 1.7)
+  minitest (~> 5.5)
+  powertrack-rb!
+  rake (~> 10.3)
+  ruby-prof (~> 0.15)
+  yajl-ruby (~> 1.0)
