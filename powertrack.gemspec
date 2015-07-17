@@ -24,4 +24,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'ruby-prof', '~> 0.15'
 
   spec.add_dependency 'multi_json', '~> 1.11'
+  spec.add_dependency 'eventmachine', '~> 1.0.3'
+  spec.add_dependency 'em-http-request', '~> 1.1'
 end

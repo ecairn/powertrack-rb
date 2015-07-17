@@ -44,7 +44,7 @@ module PowerTrack
     end
 
     def to_json
-      MultiJson.dump(to_hash)
+      MultiJson.encode(to_hash)
     end
 
     def to_hash
