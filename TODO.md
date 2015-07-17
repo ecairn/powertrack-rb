@@ -7,9 +7,9 @@
 * _[DONE]_ Check rule size
 * Rule encoding (UTF-8 enforcement ?)
 * Check all [advanced restrictions](http://support.gnip.com/apis/powertrack/rules.html#Restrictions) on rules
-* Add 1 or more rules to a stream
-* Delete some rules from the stream
-* Get all existing rules for a stream
+* _[DONE]_Add 1 or more rules to a stream
+* _[DONE]_Delete some rules from the stream
+* _[DONE]_Get all existing rules for a stream
 * Double check a rule supports all the syntactical and semantic restrictions
   as defined by GNIP [PowerTrack Rules](http://support.gnip.com/apis/powertrack/rules.html)
   reference documentation
