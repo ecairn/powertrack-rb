@@ -59,7 +59,8 @@ module PowerTrack
     # See http://support.gnip.com/apis/powertrack/api_reference.html#ListRules
     def list_rules(compressed=true)
       headers = compressed ? { 'accept-encoding' => 'gzip, compressed' } : {}
-      make_rules_request(:get, headers: headers)
+      res = make_rules_request(:get, headers: headers)
+      res.is_a?(Hash) && res.key?('rules') ? res['rules'] : res
     end
 
     # Establishes a persistent connection to the PowerTrack data stream,
