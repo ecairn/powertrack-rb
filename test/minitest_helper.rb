@@ -28,4 +28,14 @@ class Minitest::Test
 
     @pwtk_config
   end
+
+  # Returns a brand-new stream based on the config found in test/powertrack.yml.
+  def new_stream
+    PowerTrack::Stream.new(
+      powertrack_config[:username],
+      powertrack_config[:password],
+      powertrack_config[:account_name],
+      powertrack_config[:data_source],
+      powertrack_config[:stream_label])
+  end
 end

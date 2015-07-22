@@ -41,7 +41,7 @@ module PowerTrack
     # <pre>GET /rules</pre>
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#ListRules
-    def list_rules(compressed=true)
+    def list_rules(options=nil)
       raise NotImplementedError
     end
 
@@ -51,7 +51,7 @@ module PowerTrack
     # <pre>GET /track/:stream</pre>
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#Stream
-    def track(compressed=true)
+    def track(options=nil)
       raise NotImplementedError
     end
   end

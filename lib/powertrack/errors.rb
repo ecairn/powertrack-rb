@@ -2,10 +2,11 @@ module PowerTrack
   class BasePowerTrackError < StandardError
     attr_reader :status, :body
     def initialize(status, msg, body=nil)
-      _msg = "#{status}"
       msg ||= body
-      _msg += ": #{msg}" if msg
-      super(_msg)
+      _status = "#{status}".strip
+      _msg = "#{msg}".strip
+      err = [ _status, _msg ].select { |part| !part.empty? }.join(': ')
+      super(err)
       @status = status
       @body = body
     end
@@ -48,6 +49,12 @@ module PowerTrack
   class BadRequestError < PredefinedStatusPowerTrackError
     def initialize(message, body)
       super(400, message, body)
+    end
+  end
+
+  class NotAcceptableError < PredefinedStatusPowerTrackError
+    def initialize(message, body)
+      super(406, message, body)
     end
   end
 

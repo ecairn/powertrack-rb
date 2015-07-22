@@ -11,15 +11,20 @@ module PowerTrack
 
     attr_reader :value, :tag, :error
 
-    def initialize(value, long=false, tag=nil)
-      @value = value
-      @long = long
+    # Builds a new rule based on a value and an optional tag.
+    # By default, the constructor assesses if it's a long rule or not
+    # based on the length of the value. But the 'long' feature can be
+    # explicitly specified with the third parameter.
+    def initialize(value, tag=nil, long=nil)
+      @value = value || ''
       @tag = tag
+      # check if long is a boolean
+      @long = long == !!long ? long : @value.size > MAX_STD_RULE_VALUE_LENGTH
       @error = nil
     end
 
     def long?
-      !!@long
+      @long
     end
 
     def valid?
@@ -48,13 +53,27 @@ module PowerTrack
     end
 
     def to_hash
-      obj = {:value => @value}
-      obj[:tag] = @tag unless @tag.nil?
-      obj
+      res = {:value => @value}
+      res[:tag] = @tag unless @tag.nil?
+      res
     end
 
     def to_s
       to_json
+    end
+
+    def ==(other)
+      other.class == self.class &&
+        other.value == @value &&
+        other.tag == @tag &&
+        other.long? == self.long?
+    end
+
+    alias eql? ==
+
+    def hash
+      # let's assume a nil value for @value or @tag is not different from the empty value
+      "v:#{@value},t:#{@tag},l:#{@long}".hash
     end
 
     def max_value_length
