@@ -110,12 +110,12 @@ class TestRule < Minitest::Test
     res = { value: 'coke OR pepsi' }
     rule = PowerTrack::Rule.new(res[:value])
     assert_equal res, rule.to_hash
-    assert_equal MultiJson.dump(res), rule.to_json
+    assert_equal MultiJson.encode(res), rule.to_json
 
     res[:tag] = 'soda'
     rule = PowerTrack::Rule.new(res[:value], true, res[:tag])
     assert_equal res, rule.to_hash
-    assert_equal MultiJson.dump(res), rule.to_json
+    assert_equal MultiJson.encode(res), rule.to_json
   end
 
   def test_double_quote_jsonification

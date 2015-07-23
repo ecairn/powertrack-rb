@@ -37,3 +37,5 @@ build/
 # ignore Eclipse config
 .project
 
+# ignore tests-related config file
+test/powertrack.yml

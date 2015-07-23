@@ -1,14 +1,28 @@
 PATH
   remote: .
   specs:
-    powertrack-rb (0.0.1)
+    powertrack (0.0.1)
+      em-http-request (~> 1.1)
+      eventmachine (~> 1.0.3)
       multi_json (~> 1.11)
 
 GEM
   remote: https://rubygems.org/
   specs:
+    addressable (2.3.8)
+    cookiejar (0.3.2)
+    em-http-request (1.1.2)
+      addressable (>= 2.3.4)
+      cookiejar
+      em-socksify (>= 0.3)
+      eventmachine (>= 1.0.3)
+      http_parser.rb (>= 0.6.0)
+    em-socksify (0.3.0)
+      eventmachine (>= 1.0.0.beta.4)
+    eventmachine (1.0.7)
+    http_parser.rb (0.6.0)
     minitest (5.7.0)
-    multi_json (1.11.1)
+    multi_json (1.11.2)
     rake (10.4.2)
     ruby-prof (0.15.8)
     yajl-ruby (1.2.1)
@@ -19,7 +33,7 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 1.7)
   minitest (~> 5.5)
-  powertrack-rb!
+  powertrack!
   rake (~> 10.3)
   ruby-prof (~> 0.15)
   yajl-ruby (~> 1.0)
