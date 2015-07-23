@@ -7,6 +7,9 @@ class TestTrackStream < Minitest::Test
   def test_track_simple_stream
     stream = new_stream
 
+    # add a logger
+    stream.logger = Logger.new(STDERR)
+
     rule = PowerTrack::Rule.new('ny OR nyc OR #nyc OR new york')
     assert rule.valid?
 
@@ -16,17 +19,22 @@ class TestTrackStream < Minitest::Test
       assert rules_after_addition.is_a?(Array)
       assert rules_after_addition.size > 0
 
-      $stderr.puts rules_after_addition.inspect
-
-      heartbeaten = false
-      received = false
-      tweeted = false
+      heartbeats = 0
+      received = 0
+      tweeted = 0
       closed = false
 
       # ready to track
-      on_message = lambda { |message| received = true }
-      on_heartbeat = lambda { heartbeaten = true }
-      on_activity = lambda { |tweet| tweeted = true }
+      on_message = lambda do |message|
+        received += 1
+      end
+      on_heartbeat = lambda do
+        heartbeats += 1
+      end
+      on_activity = lambda do |tweet|
+        tweeted += 1
+      end
+
       close_now = lambda { closed }
 
       delay = 60
@@ -48,9 +56,15 @@ class TestTrackStream < Minitest::Test
       assert_nil res
       assert closed, 'Stream not closed'
       assert Time.now - started_at >= delay
-      assert heartbeaten, 'No heartbeat received'
-      assert received, 'No message received so far'
-      assert tweeted, 'No tweet received so far'
+
+      assert heartbeats > 0, 'No heartbeat received'
+      puts "#{heartbeats} heartbeats received"
+
+      assert received > 0, 'No message received so far'
+      puts "#{received} messages received"
+
+      assert tweeted > 0, 'No tweet received so far'
+      puts "#{tweeted} tweets received"
     ensure
       assert_nil stream.delete_rules(rule)
     end

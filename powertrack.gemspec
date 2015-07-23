@@ -26,4 +26,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'multi_json', '~> 1.11'
   spec.add_dependency 'eventmachine', '~> 1.0.3'
   spec.add_dependency 'em-http-request', '~> 1.1'
+  spec.add_dependency 'exponential-backoff',  '~> 0.0.2'
+  spec.add_dependency 'void_logger',  '~> 0.1'
 end

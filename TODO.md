@@ -14,15 +14,16 @@
   as defined by GNIP [PowerTrack Rules](http://support.gnip.com/apis/powertrack/rules.html)
   reference documentation
 * _[MAYBE]_ Support evolution of rules in terms of addition, removal and updates.
+* _[DONE]_ Rules equality and usage in hash as keys
 
 ## Real-time powertrack
 
-* Manage persitent connection to a data stream. See
+* _[DONE]_ Manage persitent connection to a data stream. See
   [Powertrack API reference](http://support.gnip.com/apis/powertrack/api_reference.html)
 * Reconnect after disconnect. See
   [Disconnections & Reconnecting](http://support.gnip.com/apis/consuming_streaming_data.html#Disconnections)
-* Reconnect using an exponential backoof pattern when there's a GNIP server issue
-  signaled by the 503 HTTP response status
+* Reconnect using an exponential backoff pattern. Especially when there's a
+  GNIP server issue signaled by the 503 HTTP response status
 * [Consume streaming data](http://support.gnip.com/apis/consuming_streaming_data.html)
 
 ## Compliance activities
@@ -32,7 +33,7 @@ and [Compliance Activities](http://support.gnip.com/sources/twitter/data_format.
 
 ### Account
 
-* Protect/Unprotect account
+* Protect / Unprotect account
 * Delete account
 * Scrub geo
 * Suspend account
@@ -58,7 +59,7 @@ See [Data format](http://support.gnip.com/sources/twitter/data_format.html)
 
 See [Managing disconnections](http://support.gnip.com/articles/disconnections-explained.html)
 
-* Support Replay
+* _[DONE]_ Support Replay
 * Support Backfill
 
 ## Other features

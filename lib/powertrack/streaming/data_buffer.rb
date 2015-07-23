@@ -21,5 +21,9 @@ module PowerTrack
     def size
       @buffer.size
     end
+
+    def reset!
+      @buffer = ""
+    end
   end
 end
