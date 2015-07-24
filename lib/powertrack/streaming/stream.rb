@@ -49,7 +49,8 @@ module PowerTrack
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#AddRules
     def add_rules(*rules)
-      make_rules_request(:post, body: MultiJson.encode('rules' => rules), ok: 201)
+      # flatten the rules in case it was provided as an array
+      make_rules_request(:post, body: MultiJson.encode('rules' => rules.flatten), ok: 201)
     end
 
     # Removes the specified rules from the stream.
@@ -58,7 +59,8 @@ module PowerTrack
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#DeleteRules
     def delete_rules(*rules)
-      make_rules_request(:delete, body: MultiJson.encode('rules' => rules))
+      # flatten the rules in case it was provided as an array
+      make_rules_request(:delete, body: MultiJson.encode('rules' => rules.flatten))
     end
 
     DEFAULT_LIST_RULES_OPTIONS = {
