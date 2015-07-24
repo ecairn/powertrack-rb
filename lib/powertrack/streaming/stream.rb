@@ -13,7 +13,7 @@ module PowerTrack
     include PowerTrack::API
     include VoidLogger::LoggerMixin
 
-    FEATURE_URL_FORMAT = "https://%s:%s/accounts/%s/publishers/%s/streams/track/%s/%s.json"
+    FEATURE_URL_FORMAT = "https://%s:%s/accounts/%s/publishers/%s/streams/track/%s/%s.json".freeze
     DEFAULT_CONNECTION_TIMEOUT = 30
     DEFAULT_INACTIVITY_TIMEOUT = 50
 
@@ -64,7 +64,7 @@ module PowerTrack
     DEFAULT_LIST_RULES_OPTIONS = {
       compressed: true,
       objectify: true
-    }
+    }.freeze
 
     # Retrieves all existing rules for a stream.
     #
@@ -110,7 +110,7 @@ module PowerTrack
       on_heartbeat: nil,
       # called periodically to detect if the tracked has to be closed
       close_now: nil
-    }
+    }.freeze
 
     # Establishes a persistent connection to the PowerTrack data stream,
     # through which the social data will be delivered.

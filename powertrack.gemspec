@@ -11,7 +11,8 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{Powertrack-rb is a gem used to develop GNIP PowerTrack streaming clients.}
   spec.description   = spec.summary
   spec.homepage      = 'https://github.com/ecairn/powertrack-rb'
-  spec.license       = 'MIT license.'
+  spec.license       = 'MIT license'
+  spec.required_ruby_version = '~> 1.9'
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
