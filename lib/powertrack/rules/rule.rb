@@ -93,7 +93,7 @@ module PowerTrack
     def too_many_positive_terms?
       return false if long?
       # negative look-behind; see http://www.rexegg.com/regex-disambiguation.html
-      @value.scan(/(?<!-)(\b\w+|\"[\-\s\w]+\"\b)/).size > MAX_POSITIVE_TERMS
+      @value.scan(/(?<!-)(\b[\w:]+|\"[\-\s\w:]+\"\b)/).select { |match| match.first != 'OR' }.size > MAX_POSITIVE_TERMS
     end
 
     def too_many_negative_terms?

@@ -74,6 +74,16 @@ class TestRule < Minitest::Test
     assert long_rule.long?
     assert long_rule.valid?
     assert_nil long_rule.error
+
+    phrase = "from:lkv1csayp OR from:u42vf OR from:y OR from:groj OR from:69iqciuxlxerqq OR from:4 OR from:9832xjrqi1ncrs OR from:7kfss6jxtl0oj OR from:b31m9qf0u3tc OR from:0 OR from:abo59n OR from:3lma3kl OR from:5 OR from:ovw7bgov OR from:ubp OR from:gc9a6b OR from:jo7ootfvy4 OR from:sg7oohj OR from:349ankku OR from:9b72n OR from:qz7offt5019u OR from:gkd OR from:cc31p3 OR from:xws9 OR from:bjzbatm OR from:rwjm78cgre3j5 OR from:f1obak7w3w OR from:nontf OR from:4aeas6kgb7nia OR from:dzqy7"
+    long_rule = PowerTrack::Rule.new(phrase)
+    assert !long_rule.long?
+    assert long_rule.valid?, long_rule.error
+    assert_nil long_rule.error
+
+    long_rule = PowerTrack::Rule.new(phrase + " OR from:michel")
+    assert !rule.valid?
+    assert_match /too many positive terms/i, rule.error
   end
 
   def test_too_many_negative_terms
