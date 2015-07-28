@@ -31,6 +31,8 @@
 See [Honoring user intent on Twitter](http://support.gnip.com/articles/honoring-user-intent-on-twitter.html)
 and [Compliance Activities](http://support.gnip.com/sources/twitter/data_format.html#ComplianceActivities).
 
+* Add a comply method to PowerTrack::API ?
+
 ### Account
 
 * Protect / Unprotect account
@@ -59,8 +61,8 @@ See [Data format](http://support.gnip.com/sources/twitter/data_format.html)
 
 See [Managing disconnections](http://support.gnip.com/articles/disconnections-explained.html)
 
-* _[DONE]_ Support Replay
-* Support Backfill
+* Support Replay
+* _[DONE]_ Support Backfill
 
 ## Other features
 

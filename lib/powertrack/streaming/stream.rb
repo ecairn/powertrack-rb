@@ -13,7 +13,7 @@ module PowerTrack
     include PowerTrack::API
     include VoidLogger::LoggerMixin
 
-    FEATURE_URL_FORMAT = "https://%s:%s/accounts/%s/publishers/%s/streams/track/%s/%s.json".freeze
+    FEATURE_URL_FORMAT = "https://%s:%s/accounts/%s/publishers/%s/streams/track/%s%s.json".freeze
     DEFAULT_CONNECTION_TIMEOUT = 30
     DEFAULT_INACTIVITY_TIMEOUT = 50
 
@@ -27,9 +27,9 @@ module PowerTrack
     DEFAULT_OK_RESPONSE_STATUS = 200
 
     # the patterns used to identify the various types of message received from GNIP
+    # everything else is an activity
     HEARTBEAT_MESSAGE_PATTERN = /\A\s*\z/
     SYSTEM_MESSAGE_PATTERN = /\A\s*\{\s*"(info|warn|error)":/mi
-    ACTIVITY_MESSAGE_PATTERN = /\A\s*\{.*"objectType":/mi
 
     attr_reader :username, :account_name, :data_source, :label
 
@@ -140,7 +140,8 @@ module PowerTrack
     end
 
     # Returns the URL of the stream for a given feature.
-    def feature_url(hostname, feature='')
+    def feature_url(hostname, feature=nil)
+      feature = feature ? "/#{feature}" : ''
       _url = FEATURE_URL_FORMAT %
               [ gnip_server_name(hostname),
                 gnip_server_port,
@@ -173,7 +174,7 @@ module PowerTrack
     end
 
     # Opens a new connection to GNIP PowerTrack.
-    def connect(hostname, feature='')
+    def connect(hostname, feature=nil)
       url = feature_url(hostname, feature)
       EventMachine::HttpRequest.new(url, connection_headers)
     end
@@ -277,9 +278,8 @@ module PowerTrack
       case message
       when HEARTBEAT_MESSAGE_PATTERN then :heartbeat
       when SYSTEM_MESSAGE_PATTERN then :system
-      when ACTIVITY_MESSAGE_PATTERN then :activity
       else
-        nil
+        :activity
       end
     end
 
