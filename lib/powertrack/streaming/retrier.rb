@@ -4,7 +4,7 @@ module PowerTrack
   class Retrier
     attr_reader :retries, :max_retries
 
-    # the default number of seconds b/w 2 attempts
+    # the default minimum number of seconds b/w 2 attempts
     DEFAULT_MIN_INTERVAL = 1.0
     # the default maximum number of seconds to wait b/w 2 attempts
     DEFAULT_MAX_ELAPSED_TIME = 30.0
@@ -13,6 +13,7 @@ module PowerTrack
     # the default randomize factor
     DEFAULT_RANDOMIZE_FACTOR = 0.25
 
+    # default options used by a retrier unless others specified at initialization
     DEFAULT_OPTIONS = {
       min_interval: DEFAULT_MIN_INTERVAL,
       max_elapsed_time: DEFAULT_MAX_ELAPSED_TIME,
@@ -20,6 +21,7 @@ module PowerTrack
       randomize_factor: DEFAULT_RANDOMIZE_FACTOR
     }
 
+    # Builds a retrier that will retry a maximum retries number of times.
     def initialize(max_retries, options=nil)
       options = DEFAULT_OPTIONS.merge(options || {})
 
