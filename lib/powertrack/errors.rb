@@ -26,8 +26,8 @@ module PowerTrack
 
   class WithStatusPowerTrackError < BasePowerTrackError
     def self.build(status, message, body)
-      @@status_to_error_class ||= Hash[
-        self.descendants.map { |desc| [ desc.new(nil, nil).status, desc ] }.flatten ]
+      @@status_to_error_class ||= Hash[*self.descendants.map { |desc|
+        [ desc.new(nil, nil).status, desc ] }.flatten ]
       if @@status_to_error_class.key?(status)
         @@status_to_error_class[status].new(message, body)
       else
