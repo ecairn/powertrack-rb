@@ -26,8 +26,10 @@ module PowerTrack
 
   class WithStatusPowerTrackError < BasePowerTrackError
     def self.build(status, message, body)
-      if PredefinedStatusPowerTrackError::STATUS_TO_ERROR_CLASS.key?(status)
-        PredefinedStatusPowerTrackError::STATUS_TO_ERROR_CLASS[status].new(message, body)
+      @@status_to_error_class ||= Hash[
+        self.descendants.map { |desc| [ desc.new(nil, nil).status, desc ] }.flatten ]
+      if @@status_to_error_class.key?(status)
+        @@status_to_error_class[status].new(message, body)
       else
         # default to unknown status error
         UnknownStatusError.new(status, message, body)
@@ -42,8 +44,6 @@ module PowerTrack
   end
 
   class PredefinedStatusPowerTrackError < WithStatusPowerTrackError
-    STATUS_TO_ERROR_CLASS = Hash[
-      self.descendants.map { |desc| [ desc.new(nil, nil).status, desc ] }.flatten ]
   end
 
   class BadRequestError < PredefinedStatusPowerTrackError
