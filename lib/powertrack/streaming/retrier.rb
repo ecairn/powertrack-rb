@@ -38,6 +38,10 @@ module PowerTrack
       @backoff.clear
     end
 
+    def retrying?
+      @retries != 0
+    end
+
     def stop
       @continue = false
     end

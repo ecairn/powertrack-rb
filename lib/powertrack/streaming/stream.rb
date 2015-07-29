@@ -341,8 +341,10 @@ module PowerTrack
           end
 
           # reset retries when some (valid) data are received
-          logger.info "Resetting retries..."
-          retrier.reset!
+          if retrier.retrying?
+            logger.info "Resetting retries..."
+            retrier.reset!
+          end
 
           # process the chunk
           buffer.process(chunk) do |raw|
@@ -372,7 +374,7 @@ module PowerTrack
 
         # reconnection on error
         reconnect_cb = lambda do |http_client|
-          logger.info "Disconnection after #{retrier.retries} retries"
+          logger.info "Disconnected after #{retrier.retries} retries"
           disconnected = true
 
           if closed
