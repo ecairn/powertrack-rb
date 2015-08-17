@@ -1,5 +1,5 @@
 # powertrack-rb
-A Ruby gem for building GNIP PowerTrack streaming clients
+A Ruby gem for building GNIP PowerTrack streaming clients.
 
 ## How to use it ?
 
@@ -34,7 +34,7 @@ A Ruby gem for building GNIP PowerTrack streaming clients
   activities = []
 
   ## defining callbacks on messages received
-  # callback triggered for each message (type) received
+  # callback triggered for each message received
   on_message = lambda { |message| received += 1 }
   # callback triggered for each heartbeat received
   on_heartbeat = lambda { heartbeats += 1 }
@@ -62,7 +62,7 @@ A Ruby gem for building GNIP PowerTrack streaming clients
   puts "After #{delay} seconds tracking '#{rule.value}':"
   puts "  o #{received} messages received"
   puts "  o #{heartbeats} heartbeats received"
-  puts "  o #{activities} activities captured"
+  puts "  o #{activities.size} activities captured"
   ```
 
 Please note that each message callback must be thread-safe since it can be called
@@ -76,7 +76,7 @@ yourself.
 
 ## Stop tracking
 
-The tracker calls the ```close_now``` block each second and stop whether the call
+The tracker calls the ```close_now``` block each second and stops whenever the call
 returns true. The stop procedure includes an additional timeframe where the tracker
 waits for each pending message to be completely processed.
 
@@ -90,7 +90,8 @@ The ```:stop_timeout``` may be fine-tune when passing options to the tracker.
 
 As highly recommended by GNIP, the PowerTrack::Stream client manages an exponential
 backoff retry mechanism when a disconnection happens. The reconnections can be
-fine-tuned through the *backoff* options hash passed to the ```track``` call.
+fine-tuned through the ```max_retries``` and ```backoff``` options passed to the
+```track``` call.
 
 ## Backfill
 
@@ -103,12 +104,12 @@ PowerTrack::Stream constructor to enable this feature.
 
 ## Errors
 
-All the errors that can come from PowerTrack are defined through an ad-hoc exception
+All the errors that come from PowerTrack are defined through an ad-hoc exception
 class hierarchy. See ```lib/powertrack/errors.rb```.
 
 ## Credits
 
-The ```powertrack``` gem heavily relies on EventMachine and the em-http-request
+The ```powertrack``` gem heavily relies on *EventMachine* and the *em-http-request*
 companion gem. It also got inspiration from a few other gems
 
 * The [gnip-rule](https://github.com/singlebrook/gnip-rule) gem
