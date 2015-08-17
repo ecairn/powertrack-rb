@@ -1,9 +1,9 @@
 PATH
   remote: .
   specs:
-    powertrack (0.0.1)
+    powertrack (1.0.0)
       em-http-request (~> 1.1)
-      eventmachine (~> 1.0.3)
+      eventmachine (~> 1.0)
       exponential-backoff (~> 0.0.2)
       multi_json (~> 1.11)
       void_logger (~> 0.1)

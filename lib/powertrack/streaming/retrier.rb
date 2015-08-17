@@ -1,6 +1,9 @@
 require 'exponential_backoff'
 
 module PowerTrack
+  # A utility class that manges an exponential backoff retry pattern.
+  # Additionally, this king of retrier can be reset or stopped by the code being
+  # retried.
   class Retrier
     attr_reader :retries, :max_retries
 
@@ -33,19 +36,24 @@ module PowerTrack
       @backoff.randomize_factor = options[:randomize_factor]
     end
 
+    # Resets the retrier.
     def reset!
       @retries = 0
       @backoff.clear
     end
 
+    # Returns true if the retrier is currently retrying.
     def retrying?
       @retries != 0
     end
 
+    # Stops retrying even after a reset. To be used from the code being retried.
     def stop
       @continue = false
     end
 
+    # Retries the block of code provided according to the configuration of the
+    # retrier.
     def retry(&block)
       # TODO: manage exceptions
       while @continue && @retries < @max_retries

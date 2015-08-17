@@ -1,14 +1,19 @@
-# TODO: use BufferedTokenizer from EventMachine ?
 module PowerTrack
+  # A buffer of data received from PowerTrack. Useful for managing the sequential
+  # chunk of bytes sent of the stream by GNIP and slice them into well-formatted
+  # messages.
   class DataBuffer
 
-    SPLIT_PATTERN = /\r\n/
+    # The pattern used by GNIP PowerTrack to delimitate a single message.
     MESSAGE_PATTERN = /^([^\r]*)\r\n/m
 
+    # Builds a new data buffer.
     def initialize
-      @buffer = ""
+      @buffer = ''
     end
 
+    # Add a chunk of bytes to the buffer and pass the new message(s) extracted
+    # to the block provided.
     def process(chunk, &block)
       @buffer.concat(chunk)
       @buffer.gsub!(MESSAGE_PATTERN) do |match|
@@ -18,12 +23,14 @@ module PowerTrack
       end
     end
 
+    # The current size of the buffer.
     def size
       @buffer.size
     end
 
+    # Resets the buffer, therefore losing any bytes received from PowerTrack.
     def reset!
-      @buffer = ""
+      @buffer = ''
     end
   end
 end

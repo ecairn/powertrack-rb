@@ -9,14 +9,25 @@ require 'powertrack/streaming/data_buffer'
 require 'powertrack/streaming/retrier'
 
 module PowerTrack
+  # A PowerTrack stream to be used for both updating the rules and collecting
+  # new messages.
   class Stream
+    # Includes the PowerTrack Stream API
     include PowerTrack::API
+    # Includes a logger, void by default
     include VoidLogger::LoggerMixin
 
+    # The format of the URLs to connect to the various stream services
     FEATURE_URL_FORMAT = "https://%s:%s/accounts/%s/publishers/%s/streams/track/%s%s.json".freeze
+
+    # The default timeout on a connection to PowerTrack. Can be overriden per call.
     DEFAULT_CONNECTION_TIMEOUT = 30
+
+    # The default timeout for inactivity on a connection to PowerTrack. Can be
+    # overriden per call.
     DEFAULT_INACTIVITY_TIMEOUT = 50
 
+    # The default options for using the stream.
     DEFAULT_STREAM_OPTIONS = {
       connect_timeout: DEFAULT_CONNECTION_TIMEOUT,
       inactivity_timeout: DEFAULT_INACTIVITY_TIMEOUT,
@@ -45,7 +56,7 @@ module PowerTrack
 
     # Adds many rules to your PowerTrack stream’s ruleset.
     #
-    # <pre>POST /rules</pre>
+    # <tt>POST /rules</tt>
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#AddRules
     def add_rules(*rules)
@@ -55,7 +66,7 @@ module PowerTrack
 
     # Removes the specified rules from the stream.
     #
-    # <pre>DELETE /rules</pre>
+    # <tt>DELETE /rules</tt>
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#DeleteRules
     def delete_rules(*rules)
@@ -72,7 +83,7 @@ module PowerTrack
     #
     # Returns an array of PowerTrack::Rule objects when the response permits so.
     #
-    # <pre>GET /rules</pre>
+    # <tt>GET /rules</tt>
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#ListRules
     def list_rules(options=nil)
@@ -117,7 +128,7 @@ module PowerTrack
     # Establishes a persistent connection to the PowerTrack data stream,
     # through which the social data will be delivered.
     #
-    # <pre>GET /track/:stream</pre>
+    # <tt>GET /track/:stream</tt>
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#Stream
     def track(options=nil)
