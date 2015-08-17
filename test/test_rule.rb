@@ -12,7 +12,7 @@ class TestRule < Minitest::Test
     assert rule.valid?
     assert_nil rule.error
 
-    rule = PowerTrack::Rule.new('pepsi', true, 'soda')
+    rule = PowerTrack::Rule.new('pepsi', 'soda', true)
     assert_equal 'pepsi', rule.value
     assert_equal 'soda', rule.tag
     assert rule.long?
@@ -22,12 +22,12 @@ class TestRule < Minitest::Test
 
   def test_too_long_tag
     long_tag = 'a' * PowerTrack::Rule::MAX_TAG_LENGTH
-    rule = PowerTrack::Rule.new('coke', false, long_tag)
+    rule = PowerTrack::Rule.new('coke', long_tag, false)
     assert rule.valid?
     assert_nil rule.error
 
     long_tag = 'b' * 2 * PowerTrack::Rule::MAX_TAG_LENGTH
-    rule = PowerTrack::Rule.new('coke', true, long_tag)
+    rule = PowerTrack::Rule.new('coke', long_tag, true)
     assert !rule.valid?
     assert_match /too long tag/i, rule.error
   end
@@ -38,14 +38,16 @@ class TestRule < Minitest::Test
     assert rule.valid?
 
     long_val = 'c' * PowerTrack::Rule::MAX_LONG_RULE_VALUE_LENGTH
-    rule = long_val.to_pwtk_rule
+    rule = long_val.to_pwtk_rule(nil, false)
+
     assert !rule.valid?
     assert_match /too long value/i, rule.error
 
-    assert long_val.to_pwtk_rule(true).valid?
+    assert long_val.to_pwtk_rule.valid?
+    assert long_val.to_pwtk_rule(nil, true).valid?
 
     very_long_val = 'rrr' * PowerTrack::Rule::MAX_LONG_RULE_VALUE_LENGTH
-    rule = very_long_val.to_pwtk_rule(true)
+    rule = very_long_val.to_pwtk_rule
     assert !rule.valid?
     assert_match /too long value/i, rule.error
   end
@@ -57,21 +59,31 @@ class TestRule < Minitest::Test
     assert rule.valid?
     assert_nil rule.error
 
-    long_rule = PowerTrack::Rule.new(phrase, true)
+    long_rule = PowerTrack::Rule.new(phrase, nil, true)
     assert long_rule.long?
     assert long_rule.valid?
     assert_nil long_rule.error
 
     phrase = ([ 'coke' ] * (2 * PowerTrack::Rule::MAX_POSITIVE_TERMS)).join(' ')
-    rule = PowerTrack::Rule.new(phrase)
+    rule = PowerTrack::Rule.new(phrase, nil, false)
     assert !rule.long?
     assert !rule.valid?
     assert_match /too many positive terms/i, rule.error
 
-    long_rule = PowerTrack::Rule.new(phrase, true)
+    long_rule = PowerTrack::Rule.new(phrase, nil, true)
     assert long_rule.long?
     assert long_rule.valid?
     assert_nil long_rule.error
+
+    phrase = "from:lkv1csayp OR from:u42vf OR from:y OR from:groj OR from:69iqciuxlxerqq OR from:4 OR from:9832xjrqi1ncrs OR from:7kfss6jxtl0oj OR from:b31m9qf0u3tc OR from:0 OR from:abo59n OR from:3lma3kl OR from:5 OR from:ovw7bgov OR from:ubp OR from:gc9a6b OR from:jo7ootfvy4 OR from:sg7oohj OR from:349ankku OR from:9b72n OR from:qz7offt5019u OR from:gkd OR from:cc31p3 OR from:xws9 OR from:bjzbatm OR from:rwjm78cgre3j5 OR from:f1obak7w3w OR from:nontf OR from:4aeas6kgb7nia OR from:dzqy7"
+    long_rule = PowerTrack::Rule.new(phrase)
+    assert !long_rule.long?
+    assert long_rule.valid?, long_rule.error
+    assert_nil long_rule.error
+
+    long_rule = PowerTrack::Rule.new(phrase + " OR from:michel")
+    assert !rule.valid?
+    assert_match /too many positive terms/i, rule.error
   end
 
   def test_too_many_negative_terms
@@ -81,7 +93,7 @@ class TestRule < Minitest::Test
     assert rule.valid?
     assert_nil rule.error
 
-    long_rule = PowerTrack::Rule.new(phrase, true)
+    long_rule = PowerTrack::Rule.new(phrase, nil, true)
     assert long_rule.long?
     assert long_rule.valid?
     assert_nil long_rule.error
@@ -92,7 +104,7 @@ class TestRule < Minitest::Test
     assert !rule.valid?
     assert_match /too many negative terms/i, rule.error
 
-    long_rule = PowerTrack::Rule.new(phrase, true)
+    long_rule = PowerTrack::Rule.new(phrase, nil, true)
     assert long_rule.long?
     assert long_rule.valid?
     assert_nil long_rule.error
@@ -113,7 +125,7 @@ class TestRule < Minitest::Test
     assert_equal MultiJson.encode(res), rule.to_json
 
     res[:tag] = 'soda'
-    rule = PowerTrack::Rule.new(res[:value], true, res[:tag])
+    rule = PowerTrack::Rule.new(res[:value], res[:tag], true)
     assert_equal res, rule.to_hash
     assert_equal MultiJson.encode(res), rule.to_json
   end
@@ -125,5 +137,27 @@ class TestRule < Minitest::Test
     rule = PowerTrack::Rule.new('Toys \"R\" Us')
     # 2 backslashes for 1
     assert_equal '{"value":"Toys \\\\\\"R\\\\\\" Us"}', rule.to_json
+  end
+
+  def test_hash
+    short_rule = PowerTrack::Rule.new('coke')
+    not_long_rule = PowerTrack::Rule.new('coke', nil, false)
+    false_long_rule = PowerTrack::Rule.new('coke', nil, true)
+    short_rule_with_tag = PowerTrack::Rule.new('coke', 'soda')
+
+    assert short_rule == not_long_rule
+    assert_equal short_rule, not_long_rule
+    assert_equal short_rule.hash, not_long_rule.hash
+
+    assert short_rule != false_long_rule
+    h = { short_rule => 1 }
+    h[not_long_rule] = 2
+    h[false_long_rule] = 3
+    h[short_rule_with_tag] = 4
+
+    assert_equal 2, h[short_rule]
+    assert_equal h[short_rule], h[not_long_rule]
+    assert_equal 4, h[short_rule_with_tag]
+    assert_nil h[PowerTrack::Rule.new('pepsi', 'soda')]
   end
 end

@@ -1,7 +1,8 @@
 ## The MIT License (MIT)
 
 - Copyright (c) 2015 eCairn Inc.
-- Copyright (c) 2012 Eric Wendelin
+- Copyright (c) 2012-2015 Eric Wendelin
+- Copyright (c) 2011-2015 Ryan Weald / Sharethrough
 
 ```
 Permission is hereby granted, free of charge, to any person obtaining a copy
