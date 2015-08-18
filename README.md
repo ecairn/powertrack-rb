@@ -1,4 +1,4 @@
-# powertrack-rb
+# powertrack
 A Ruby gem for building GNIP PowerTrack streaming clients.
 
 ## How to use it ?
