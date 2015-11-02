@@ -1,0 +1,5 @@
+1.0.2
+-----
+
+  * to_json can get options in order for powertrack to support the standard
+    JSON library (through the MultiJson gem). Thanks to @duncanita for the PR.
