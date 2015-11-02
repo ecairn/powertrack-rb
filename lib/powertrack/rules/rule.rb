@@ -63,7 +63,7 @@ module PowerTrack
 
     # Dumps the rule in a valid JSON format.
     def to_json(*options)
-      MultiJson.encode(to_hash)
+      MultiJson.encode(to_hash, options)
     end
 
     # Converts the rule in a Hash.
