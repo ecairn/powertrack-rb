@@ -309,6 +309,7 @@ module PowerTrack
       on_heartbeat = options[:on_heartbeat]
       on_message = options[:on_message]
       on_activity = options[:on_activity]
+      on_system = options[:on_system]
       close_now = options[:close_now] || lambda { false }
 
       buffer = PowerTrack::DataBuffer.new
