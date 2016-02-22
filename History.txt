@@ -1,3 +1,8 @@
+1.0.3
+-----
+
+  * Retrieve the on_system function from options
+
 1.0.2
 -----
 
