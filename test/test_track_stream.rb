@@ -4,8 +4,16 @@ require 'multi_json'
 
 class TestTrackStream < Minitest::Test
 
-  def test_track_simple_stream
-    stream = new_stream
+  def test_track_realtime_stream
+    track_simple_stream(false)
+  end
+
+  def test_track_replay_stream
+    track_simple_stream(true)
+  end
+
+  def track_simple_stream(replay)
+    stream = new_stream(replay)
 
     # add a logger
     stream.logger = Logger.new(STDERR)
@@ -23,6 +31,8 @@ class TestTrackStream < Minitest::Test
       received = 0
       tweeted = 0
       closed = false
+      from = nil
+      to = nil
 
       # ready to track
       on_message = lambda do |message|
@@ -34,28 +44,48 @@ class TestTrackStream < Minitest::Test
       on_activity = lambda do |tweet|
         tweeted += 1
       end
+      on_system = lambda do |message|
+        $stderr.puts message.inspect
+      end
 
       close_now = lambda { closed }
 
-      delay = 60
-      Thread.new do
-        $stderr.puts "Time-bomb thread running for #{delay} seconds..."
-        sleep delay
-        $stderr.puts "Time to shut down !"
-        closed = true
+      if replay
+        now = Time.now
+        from = now - 31*60
+        to = now - 30*60
+        delay = to - from
+      else
+        delay = 60
+        Thread.new do
+          $stderr.puts "Time-bomb thread running for #{delay} seconds..."
+          sleep delay
+          $stderr.puts "Time to shut down !"
+          closed = true
+        end
       end
 
       started_at = Time.now
       res = stream.track(on_message: on_message,
                          on_heartbeat: on_heartbeat,
                          on_activity: on_activity,
+                         on_system: on_system,
                          close_now: close_now,
-                         max_retries: 3,
-                         fake_disconnections: 20)
+                         max_retries: replay ? 0 : 2,
+                         fake_disconnections: replay ? nil : 20,
+                         from: from,
+                         to: to)
+
+      ended_at = Time.now
 
       assert_nil res
-      assert closed, 'Stream not closed'
-      assert Time.now - started_at >= delay
+      assert replay || closed, 'Stream not closed'
+
+      if replay
+        assert (ended_at - started_at) <= delay
+      else
+        assert (ended_at - started_at) >= delay
+      end
 
       assert heartbeats > 0, 'No heartbeat received'
       puts "#{heartbeats} heartbeats received"

@@ -18,7 +18,7 @@ module PowerTrack
     include VoidLogger::LoggerMixin
 
     # The format of the URLs to connect to the various stream services
-    FEATURE_URL_FORMAT = "https://%s:%s/accounts/%s/publishers/%s/streams/track/%s%s.json".freeze
+    FEATURE_URL_FORMAT = "https://%s:%s/accounts/%s/publishers/%s/%s/track/%s%s.json".freeze
 
     # The default timeout on a connection to PowerTrack. Can be overriden per call.
     DEFAULT_CONNECTION_TIMEOUT = 30
@@ -32,15 +32,21 @@ module PowerTrack
       connect_timeout: DEFAULT_CONNECTION_TIMEOUT,
       inactivity_timeout: DEFAULT_INACTIVITY_TIMEOUT,
       # use a client id if you want to leverage the Backfill feature
-      client_id: nil
+      client_id: nil,
+      # enable the replay mode to get activities over the last 5 days
+      # see http://support.gnip.com/apis/replay/api_reference.html
+      replay: false
     }
 
     DEFAULT_OK_RESPONSE_STATUS = 200
 
-    # the patterns used to identify the various types of message received from GNIP
+    # The patterns used to identify the various types of message received from GNIP
     # everything else is an activity
     HEARTBEAT_MESSAGE_PATTERN = /\A\s*\z/
     SYSTEM_MESSAGE_PATTERN = /\A\s*\{\s*"(info|warn|error)":/mi
+
+    # The format used to send UTC timestamps in Replay mode
+    REPLAY_TIMESTAMP_FORMAT = '%Y%m%d%H%M'
 
     attr_reader :username, :account_name, :data_source, :label
 
@@ -52,6 +58,8 @@ module PowerTrack
       @label = label
       @options = DEFAULT_STREAM_OPTIONS.merge(options || {})
       @client_id = @options[:client_id]
+      @replay = !!@options[:replay]
+      @stream_mode = @replay ? 'replay' : 'streams'
     end
 
     # Adds many rules to your PowerTrack stream’s ruleset.
@@ -105,7 +113,7 @@ module PowerTrack
       # receive GZip-compressed payloads ?
       compressed: true,
       # max number of retries after a disconnection
-      max_retries: 3,
+      max_retries: 2,
       # advanced options to configure exponential backoff used for retries
       backoff: nil,
       # max number of seconds to wait for last message handlers to complete
@@ -113,6 +121,10 @@ module PowerTrack
       # pass message in raw form (JSON formatted string) instead of JSON-decoded
       # Ruby objects to message handlers
       raw: false,
+      # the starting date from which the activities will be recovered (replay mode only)
+      from: nil,
+      # the ending date to which the activities will be recovered (replay mode only)
+      to: nil,
       # called for each message received, except heartbeats
       on_message: nil,
       # called for each activity received
@@ -158,6 +170,7 @@ module PowerTrack
                 gnip_server_port,
                 @account_name,
                 @data_source,
+                @stream_mode,
                 @label,
                 feature ]
 
@@ -187,6 +200,7 @@ module PowerTrack
     # Opens a new connection to GNIP PowerTrack.
     def connect(hostname, feature=nil)
       url = feature_url(hostname, feature)
+      logger.debug("Connecting to '#{url}' with headers #{connection_headers}...")
       EventMachine::HttpRequest.new(url, connection_headers)
     end
 
@@ -283,14 +297,14 @@ module PowerTrack
       handle_api_response(resp_status, resp_error, resp_body, options[:ok])
     end
 
-    # Returns the type of message received on the stream, nil when the type
-    # cannot be identified.
+    # Returns the type of message received on the stream, together with a
+    # level indicator in case of a system message, nil otherwise.
     def message_type(message)
       case message
-      when HEARTBEAT_MESSAGE_PATTERN then :heartbeat
-      when SYSTEM_MESSAGE_PATTERN then :system
+      when HEARTBEAT_MESSAGE_PATTERN then [ :heartbeat, nil ]
+      when SYSTEM_MESSAGE_PATTERN then [ :system, $1.downcase.to_sym ]
       else
-        :activity
+        [ :activity, nil ]
       end
     end
 
@@ -322,7 +336,25 @@ module PowerTrack
       EM.run do
         logger.info "Starting the reactor..."
         con = connect('stream')
-        http = con.get(head: track_req_headers(options[:compressed]))
+        get_opts = { head: track_req_headers(options[:compressed]) }
+
+        # add a timeframe in replay mode
+        if @replay
+          now = Time.now
+          # start 1 hour ago by default
+          from = options[:from] || (now - 60*60)
+          # stop 30 minutes ago by default
+          to = options[:to] || (now - 30*60)
+
+          get_opts[:query] = {
+            'fromDate' => from.utc.strftime(REPLAY_TIMESTAMP_FORMAT),
+            'toDate' => to.utc.strftime(REPLAY_TIMESTAMP_FORMAT)
+          }
+
+          logger.info "Replay mode enabled from '#{from}' to '#{to}'"
+        end
+
+        http = con.get(get_opts)
 
         # polls to see if the connection should be closed
         close_watcher = EM.add_periodic_timer(1) do
@@ -352,19 +384,21 @@ module PowerTrack
             next
           end
 
-          # reset retries when some (valid) data are received
-          if retrier.retrying?
-            logger.info "Resetting retries..."
-            retrier.reset!
-          end
-
           # process the chunk
           buffer.process(chunk) do |raw|
             logger.debug "New message received"
+
+            # get the message type and its (optional) level
+            m_type, m_level = message_type(raw)
+
+            # reset retries when some (valid) data are received
+            if retrier.retrying? && m_level != :error
+              logger.info "Resetting retries..."
+              retrier.reset!
+            end
+
             EM.defer do
               # select the right message handler(s) according to the message type
-              m_type = message_type(raw)
-
               if m_type == :heartbeat
                 on_heartbeat.call if on_heartbeat
               else
@@ -401,6 +435,7 @@ module PowerTrack
             resp_status = http_client.response_header.status || DEFAULT_OK_RESPONSE_STATUS
             resp_error = http_client.error
             resp_body = http_client.response
+
             wait_til_defers_finish_and_stop(stop_timeout)
           end
         end

@@ -78,5 +78,6 @@ See [Managing disconnections](http://support.gnip.com/articles/disconnections-ex
 ## Other features
 
 * _[DONE]_ Support test and development streams
+* _[DONE]_ Support Replay mode (5-days back history)
 * Support status dashboard
 * Support Historical Powertrack

@@ -90,8 +90,8 @@ The ```:stop_timeout``` may be fine-tune when passing options to the tracker.
 
 As highly recommended by GNIP, the PowerTrack::Stream client manages an exponential
 backoff retry mechanism when a disconnection happens. The reconnections can be
-fine-tuned through the ```max_retries``` and ```backoff``` options passed to the
-```track``` call.
+fine-tuned through the ```:max_retries``` and ```:backoff``` options passed to
+the ```track``` call.
 
 ## Backfill
 
@@ -101,6 +101,19 @@ last 5 minutes when reconnecting.
 
 Provide a (numerical) client id as the last (but optional) argument of the
 PowerTrack::Stream constructor to enable this feature.
+
+## Replay
+
+Replay is a feature provided by GNIP to recover lost activities over the last
+5 days. The Replay stream lives aside the realtime stream and is activated
+by setting the ```:replay``` option to true when building a ```PowerTrack::Stream```
+object.
+
+Once Replay is activated, you use the stream as previously, starting by
+configuring some rules that define which activities you will recover. Once done,
+you can track the stream by specifying a timeframe with the ```:from```
+and ```:to options```. By default, replay happens over 30 minutes, starting 1
+hour ago.
 
 ## Errors
 

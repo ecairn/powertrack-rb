@@ -56,7 +56,7 @@ module PowerTrack
     # retrier.
     def retry(&block)
       # TODO: manage exceptions
-      while @continue && @retries < @max_retries
+      while @continue && @retries <= @max_retries
         res = yield
         if @continue
           @retries += 1

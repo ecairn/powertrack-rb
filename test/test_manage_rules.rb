@@ -5,7 +5,15 @@ require 'multi_json'
 class TestManageRules < Minitest::Test
 
   def test_add_then_delete_a_single_rule
-    stream = new_stream
+    add_then_delete_a_single_rule(false)
+  end
+
+  def test_add_then_delete_a_single_rule_in_replay_mode
+    add_then_delete_a_single_rule(true)
+  end
+
+  def add_then_delete_a_single_rule(replay)
+    stream = new_stream(replay)
 
     rule = PowerTrack::Rule.new('coke')
     assert rule.valid?
