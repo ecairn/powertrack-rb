@@ -1,10 +1,15 @@
-1.0.3
------
+v1.1.0
+------
+
+  * Add support for Replay feature
+
+v1.0.3
+------
 
   * Retrieve the on_system function from options
 
-1.0.2
------
+v1.0.2
+------
 
   * to_json can get options in order for powertrack to support the standard
     JSON library (through the MultiJson gem). Thanks to @duncanita for the PR.
