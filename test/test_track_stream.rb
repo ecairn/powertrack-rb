@@ -71,7 +71,7 @@ class TestTrackStream < Minitest::Test
                          on_activity: on_activity,
                          on_system: on_system,
                          close_now: close_now,
-                         max_retries: replay ? 0 : 2,
+                         max_retries: 2,
                          fake_disconnections: replay ? nil : 20,
                          from: from,
                          to: to)

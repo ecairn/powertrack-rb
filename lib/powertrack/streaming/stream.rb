@@ -391,8 +391,10 @@ module PowerTrack
             # get the message type and its (optional) level
             m_type, m_level = message_type(raw)
 
-            # reset retries when some (valid) data are received
-            if retrier.retrying? && m_level != :error
+            # reset retries when some (valid) data are received but not in replay
+            # mode where we don't want to retry on the same timeframe again and
+            # again when GNIP periodically fails
+            if !@replay && retrier.retrying? && m_level != :error
               logger.info "Resetting retries..."
               retrier.reset!
             end
@@ -423,7 +425,10 @@ module PowerTrack
           logger.info "Disconnected after #{retrier.retries} retries"
           disconnected = true
 
-          if closed
+          resp_status = http_client.response_header.status
+
+          # stop the stream if required so or the replay is simply over
+          if closed || (@replay && resp_status == DEFAULT_OK_RESPONSE_STATUS)
             # close immediately if required
             wait_til_defers_finish_and_stop(stop_timeout)
             # tell the retrier the tracking is over
@@ -432,7 +437,7 @@ module PowerTrack
             # cancel the periodic close watcher
             close_watcher.cancel
 
-            resp_status = http_client.response_header.status || DEFAULT_OK_RESPONSE_STATUS
+            resp_status ||= DEFAULT_OK_RESPONSE_STATUS
             resp_error = http_client.error
             resp_body = http_client.response
 
