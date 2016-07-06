@@ -84,7 +84,7 @@ It's up to the developer's responsibility to complete message processing as soon
 possible. After 10 seconds (by default), the stop will be forced and a few messages
 already received but not processed yet may be lost.
 
-The ```:stop_timeout``` may be fine-tune when passing options to the tracker.
+The ```:stop_timeout``` may be fine-tuned when passing options to the tracker.
 
 ## Disconnections and Retries
 
@@ -92,6 +92,9 @@ As highly recommended by GNIP, the PowerTrack::Stream client manages an exponent
 backoff retry mechanism when a disconnection happens. The reconnections can be
 fine-tuned through the ```:max_retries``` and ```:backoff``` options passed to
 the ```track``` call.
+
+Note that the retries counter is reset each time the client manages to receive
+a message after a disconnection except in Replay mode (see further).
 
 ## Backfill
 
@@ -112,8 +115,13 @@ object.
 Once Replay is activated, you use the stream as previously, starting by
 configuring some rules that define which activities you will recover. Once done,
 you can track the stream by specifying a timeframe with the ```:from```
-and ```:to options```. By default, replay happens over 30 minutes, starting 1
+and ```:to``` options. By default, replay happens over 30 minutes, starting 1
 hour ago.
+
+Regarding Replay mode and ```:max_retries```, the client does not reset the
+retry counter and will never reconnect more than the max number of retries
+specified. This specific retry behavior in Replay mode prevents the client from
+replaying the same timeframe again and again when GNIP is unstable.
 
 ## Errors
 
