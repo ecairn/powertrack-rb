@@ -18,7 +18,12 @@ module PowerTrack
     include VoidLogger::LoggerMixin
 
     # The format of the URLs to connect to the various stream services
-    FEATURE_URL_FORMAT = "https://%s:%s/accounts/%s/publishers/%s/%s/track/%s%s.json".freeze
+    FEATURE_URL_FORMAT = {
+      # [ hostname, account, source, mode, label, feature ]
+      v1: "https://%s.gnip.com/accounts/%s/publishers/%s/%s/track/%s%s.json".freeze,
+      # [ hostname, feature, account, source, label, sub-feature ]
+      v2: "https://gnip-%s.twitter.com/%s/powertrack/accounts/%s/publishers/%s/%s%s.json".freeze
+    }.freeze
 
     # The default timeout on a connection to PowerTrack. Can be overriden per call.
     DEFAULT_CONNECTION_TIMEOUT = 30
@@ -29,24 +34,28 @@ module PowerTrack
 
     # The default options for using the stream.
     DEFAULT_STREAM_OPTIONS = {
+      # enable PowerTrack v2 API (using v1 by default)
+      v2: false,
+      # override the default connection timeout
       connect_timeout: DEFAULT_CONNECTION_TIMEOUT,
+      # override the default inactivity timeout
       inactivity_timeout: DEFAULT_INACTIVITY_TIMEOUT,
-      # use a client id if you want to leverage the Backfill feature
+      # use a client id if you want to leverage the Backfill feature in v1
       client_id: nil,
       # enable the replay mode to get activities over the last 5 days
       # see http://support.gnip.com/apis/replay/api_reference.html
       replay: false
-    }
+    }.freeze
 
     DEFAULT_OK_RESPONSE_STATUS = 200
 
     # The patterns used to identify the various types of message received from GNIP
     # everything else is an activity
-    HEARTBEAT_MESSAGE_PATTERN = /\A\s*\z/
-    SYSTEM_MESSAGE_PATTERN = /\A\s*\{\s*"(info|warn|error)":/mi
+    HEARTBEAT_MESSAGE_PATTERN = /\A\s*\z/.freeze
+    SYSTEM_MESSAGE_PATTERN = /\A\s*\{\s*"(info|warn|error)":/mi.freeze
 
     # The format used to send UTC timestamps in Replay mode
-    REPLAY_TIMESTAMP_FORMAT = '%Y%m%d%H%M'
+    REPLAY_TIMESTAMP_FORMAT = '%Y%m%d%H%M'.freeze
 
     attr_reader :username, :account_name, :data_source, :label
 
@@ -57,9 +66,12 @@ module PowerTrack
       @data_source = data_source
       @label = label
       @options = DEFAULT_STREAM_OPTIONS.merge(options || {})
-      @client_id = @options[:client_id]
       @replay = !!@options[:replay]
+      @client_id = @options[:client_id]
       @stream_mode = @replay ? 'replay' : 'streams'
+
+      # force v1 if Replay activated
+      @v2 = !@replay && !!@options[:v2]
     end
 
     # Adds many rules to your PowerTrack stream’s ruleset.
@@ -69,7 +81,9 @@ module PowerTrack
     # See http://support.gnip.com/apis/powertrack/api_reference.html#AddRules
     def add_rules(*rules)
       # flatten the rules in case it was provided as an array
-      make_rules_request(:post, body: MultiJson.encode('rules' => rules.flatten), ok: 201)
+      make_rules_request(:post,
+        body: MultiJson.encode('rules' => rules.flatten),
+        ok: 201)
     end
 
     # Removes the specified rules from the stream.
@@ -78,8 +92,14 @@ module PowerTrack
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#DeleteRules
     def delete_rules(*rules)
+      # v2 does not use DELETE anymore
+      delete_verb = @v2 ? :post : :delete
       # flatten the rules in case it was provided as an array
-      make_rules_request(:delete, body: MultiJson.encode('rules' => rules.flatten))
+      delete_options = { body: MultiJson.encode('rules' => rules.flatten) }
+      # v2 uses a query parameter
+      delete_options[:query] = { '_method' => 'delete' } if @v2
+
+      make_rules_request(delete_verb, delete_options)
     end
 
     DEFAULT_LIST_RULES_OPTIONS = {
@@ -103,7 +123,9 @@ module PowerTrack
          res.is_a?(Hash) &&
          (rules = res['rules']).is_a?(Array) &&
          rules.all? { |rule| rule.is_a?(Hash) && rule.key?('value') }
-        rules.map { |rule| PowerTrack::Rule.new(rule['value'], rule['tag']) }
+        rules.map do |rule|
+          PowerTrack::Rule.new(rule['value'], tag: rule['tag'], id: rule['id'])
+        end
       else
         res
       end
@@ -125,6 +147,8 @@ module PowerTrack
       from: nil,
       # the ending date to which the activities will be recovered (replay mode only)
       to: nil,
+      # specify a number of minutes to leverage the Backfill feature (v2 only)
+      backfill_minutes: nil,
       # called for each message received, except heartbeats
       on_message: nil,
       # called for each activity received
@@ -140,6 +164,8 @@ module PowerTrack
     # Establishes a persistent connection to the PowerTrack data stream,
     # through which the social data will be delivered.
     #
+    # Manages reconnections when being disconnected.
+    #
     # <tt>GET /track/:stream</tt>
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#Stream
@@ -151,30 +177,31 @@ module PowerTrack
 
     private
 
-    # Returns the fully-qualified domain name of a GNIP PowerTrack server
-    # based on a hostname.
-    def gnip_server_name(hostname)
-      "%s.gnip.com" % [ hostname ]
-    end
-
-    # Returns the port used by GNIP PowerTrack servers.
-    def gnip_server_port
-      '443'
-    end
-
     # Returns the URL of the stream for a given feature.
-    def feature_url(hostname, feature=nil)
-      feature = feature ? "/#{feature}" : ''
-      _url = FEATURE_URL_FORMAT %
-              [ gnip_server_name(hostname),
-                gnip_server_port,
-                @account_name,
-                @data_source,
-                @stream_mode,
-                @label,
-                feature ]
+    def feature_url(hostname, feature=nil, sub_feature=nil)
+      _url = nil
+      if @v2
+        feature ||= hostname
+        sub_feature = sub_feature ? "/#{sub_feature}" : ''
+        _url = FEATURE_URL_FORMAT[:v2] %
+                [ hostname,
+                  feature,
+                  @account_name,
+                  @data_source,
+                  @label,
+                  sub_feature ]
+      else
+        feature = feature ? "/#{feature}" : ''
+        _url = FEATURE_URL_FORMAT[:v1] %
+                [ hostname,
+                  @account_name,
+                  @data_source,
+                  @stream_mode,
+                  @label,
+                  feature ]
 
-      _url += "?client=#{@client_id}" if @client_id
+        _url += "?client=#{@client_id}" if @client_id
+      end
 
       _url
     end
@@ -198,8 +225,8 @@ module PowerTrack
     end
 
     # Opens a new connection to GNIP PowerTrack.
-    def connect(hostname, feature=nil)
-      url = feature_url(hostname, feature)
+    def connect(hostname, feature=nil, sub_feature=nil)
+      url = feature_url(hostname, feature, sub_feature)
       logger.debug("Connecting to '#{url}' with headers #{connection_headers}...")
       EventMachine::HttpRequest.new(url, connection_headers)
     end
@@ -264,8 +291,9 @@ module PowerTrack
     DEFAULT_RULES_REQUEST_OPTIONS = {
       ok: DEFAULT_OK_RESPONSE_STATUS,
       headers: {},
+      query: {},
       body: nil
-    }
+    }.freeze
 
     # Makes a rules-related request with a specific HTTP verb and a few options.
     # Returns the response if successful or an exception if the request failed.
@@ -279,6 +307,7 @@ module PowerTrack
         con = connect('api', 'rules')
         http = con.setup_request(verb,
                  head: rules_req_headers.merge(options[:headers]),
+                 query: options[:query],
                  body: options[:body])
 
         http.errback do
@@ -315,10 +344,10 @@ module PowerTrack
                         .merge(gzip_compressed_header(compressed))
     end
 
-    # Connects to the /track endpoint and manages reconnections when being
-    # disconnected.
+    # Connects to the /track endpoint.
     def track_once(options, retrier)
       logger.info "Starting tracker for retry ##{retrier.retries}..."
+      backfill_minutes = options[:backfill_minutes]
       stop_timeout = options[:stop_timeout]
       on_heartbeat = options[:on_heartbeat]
       on_message = options[:on_message]
@@ -336,7 +365,10 @@ module PowerTrack
       EM.run do
         logger.info "Starting the reactor..."
         con = connect('stream')
-        get_opts = { head: track_req_headers(options[:compressed]) }
+        get_opts = {
+          head: track_req_headers(options[:compressed]),
+          query: {}
+        }
 
         # add a timeframe in replay mode
         if @replay
@@ -346,12 +378,16 @@ module PowerTrack
           # stop 30 minutes ago by default
           to = options[:to] || (now - 30*60)
 
-          get_opts[:query] = {
+          get_opts[:query].merge!({
             'fromDate' => from.utc.strftime(REPLAY_TIMESTAMP_FORMAT),
             'toDate' => to.utc.strftime(REPLAY_TIMESTAMP_FORMAT)
-          }
+          })
 
           logger.info "Replay mode enabled from '#{from}' to '#{to}'"
+        end
+
+        if @v2 && backfill_minutes
+          get_opts[:query]['backfillMinutes'] = backfill_minutes
         end
 
         http = con.get(get_opts)

@@ -4,28 +4,46 @@ require 'multi_json'
 
 class TestTrackStream < Minitest::Test
 
-  def test_track_realtime_stream
-    track_simple_stream(false)
+  def test_track_realtime_stream_v1
+    track_simple_stream(false, false)
   end
 
-  def test_track_replay_stream
-    track_simple_stream(true)
+  def test_track_realtime_stream_v2
+    track_simple_stream(true, false)
   end
 
-  def track_simple_stream(replay)
-    stream = new_stream(replay)
+  def test_track_replay_stream_v1
+    track_simple_stream(false, true)
+  end
+
+#  def test_track_replay_stream_v2
+#    track_simple_stream(true, true)
+#  end
+
+  def track_simple_stream(v2, replay)
+    stream = new_stream(v2, replay)
 
     # add a logger
     stream.logger = Logger.new(STDERR)
 
-    rule = PowerTrack::Rule.new('ny OR nyc OR #nyc OR new york')
-    assert rule.valid?
+    new_rule = PowerTrack::Rule.new('ny OR nyc OR #nyc OR new york')
+    assert new_rule.valid?
 
     begin
-      assert_nil stream.add_rule(rule)
+      res = stream.add_rule(new_rule)
+
+      if v2
+        assert res.is_a?(Hash)
+        assert res['summary'].is_a?(Hash)
+      else
+        assert_nil res
+      end
+
       rules_after_addition = stream.list_rules
       assert rules_after_addition.is_a?(Array)
       assert rules_after_addition.size > 0
+      assert rules_after_addition.any? { |rule| rule == new_rule }
+      assert rules_after_addition.all? { |rule| !rule.id.nil? } if v2
 
       heartbeats = 0
       received = 0
@@ -87,7 +105,8 @@ class TestTrackStream < Minitest::Test
         assert (ended_at - started_at) >= delay
       end
 
-      assert heartbeats > 0, 'No heartbeat received'
+      # heartbeats only sent every 10 minutes in v2...
+      assert heartbeats > 0, 'No heartbeat received' unless v2
       puts "#{heartbeats} heartbeats received"
 
       assert received > 0, 'No message received so far'
@@ -95,8 +114,19 @@ class TestTrackStream < Minitest::Test
 
       assert tweeted > 0, 'No tweet received so far'
       puts "#{tweeted} tweets received"
+    rescue
+      p $!
     ensure
-      assert_nil stream.delete_rules(rule)
+      res = stream.delete_rules(new_rule)
+
+      if v2
+        assert res.is_a?(Hash)
+        assert res['summary'].is_a?(Hash)
+        assert_equal 1, res['summary']['deleted']
+        assert_equal 0, res['summary']['not_deleted']
+      else
+        assert_nil res
+      end
     end
   end
 end

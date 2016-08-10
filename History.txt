@@ -1,3 +1,9 @@
+v1.2.0
+------
+
+  * Support PowerTrack v2
+    - Rule validator and Replay v2 not supported yet
+
 v1.1.1
 ------
 

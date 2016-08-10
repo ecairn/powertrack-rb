@@ -30,13 +30,14 @@ class Minitest::Test
   end
 
   # Returns a brand-new stream based on the config found in test/powertrack.yml.
-  def new_stream(replay=false)
+  def new_stream(v2=false, replay=false)
     PowerTrack::Stream.new(
       powertrack_config[:username],
       powertrack_config[:password],
       powertrack_config[:account_name],
       powertrack_config[:data_source],
-      replay ? 'prod' : powertrack_config[:stream_label],
-      replay: replay)
+      replay ? 'prod' : (v2 ? 'prod2' : powertrack_config[:stream_label]),
+      replay: replay,
+      v2: v2)
   end
 end

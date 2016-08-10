@@ -5,7 +5,7 @@ module PowerTrack
   class DataBuffer
 
     # The pattern used by GNIP PowerTrack to delimitate a single message.
-    MESSAGE_PATTERN = /^([^\r]*)\r\n/m
+    MESSAGE_PATTERN = /^([^\r]*)\r\n/m.freeze
 
     # Builds a new data buffer.
     def initialize

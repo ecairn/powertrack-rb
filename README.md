@@ -102,14 +102,14 @@ Backfill is a feature provided by GNIP to avoid losing activities when being
 disconnected. It automatically resends the messages sent on the stream for the
 last 5 minutes when reconnecting.
 
-Provide a (numerical) client id as the last (but optional) argument of the
-PowerTrack::Stream constructor to enable this feature.
+Provide a (numerical) client id by setting the ```:client_id``` option when
+building a ```PowerTrack::Stream``` object to enable this feature.
 
 ## Replay
 
 Replay is a feature provided by GNIP to recover lost activities over the last
 5 days. The Replay stream lives aside the realtime stream and is activated
-by setting the ```:replay``` option to true when building a ```PowerTrack::Stream```
+by setting the ```:replay``` option to ```true``` when building a ```PowerTrack::Stream```
 object.
 
 Once Replay is activated, you use the stream as previously, starting by
@@ -127,6 +127,32 @@ replaying the same timeframe again and again when GNIP is unstable.
 
 All the errors that come from PowerTrack are defined through an ad-hoc exception
 class hierarchy. See ```lib/powertrack/errors.rb```.
+
+## PowerTrack v2
+
+The library provides early support for PowerTrack API version 2. Please read
+[PowerTrack API v2](http://support.gnip.com/apis/powertrack2.0/index.html) and
+the [Migration Guide](http://support.gnip.com/apis/powertrack2.0/transition.html)
+for details about this new major release.
+
+Set the ```:v2```option to ```true``` when building a ```PowerTrack::Stream```
+object to enable this feature. The library uses v1 by default.
+
+Everything should work the same for v2 as for v1 except
+
+o ```PowerTrack::Stream.add_rule``` and ```PowerTrack::Stream.delete_rule```
+  returns a status instead of nil
+o The Backfill feature is configured by the ```:backfill_minutes``` option passed
+  to the ```PowerTrack::Stream.track``` method instead of passing a ```:client_id```
+  option to the ```PowerTrack::Stream``` initializer (which is simply ignored
+  when v2 is turned on). The new option specifies a number of minutes of backfill
+  data to receive.
+o The Replay feature still uses v1 even if you explicitly turn v2 on. Support
+  for [Replay v2](http://support.gnip.com/apis/replay2.0/api_reference.html) is
+  planned but not scheduled yet.
+
+Finally, PowerTrack v2 has a new endpoint for rule validation that is not
+supported by this library yet.
 
 ## Credits
 

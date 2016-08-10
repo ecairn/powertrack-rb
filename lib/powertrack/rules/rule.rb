@@ -19,17 +19,32 @@ module PowerTrack
     # The maximum number of negative terms in a single rule value
     MAX_NEGATIVE_TERMS = 50
 
-    attr_reader :value, :tag, :error
+    # The default rule features
+    DEFAULT_RULE_FEATURES = {
+      # no id by default
+      id: nil,
+      # no tag by default
+      tag: nil,
+      # long determined by value length
+      long: nil
+    }.freeze
 
-    # Builds a new rule based on a value and an optional tag.
+    attr_reader :value, :id, :tag, :error
+
+    # Builds a new rule based on a value and some optional features
+    # (:id, :tag, :long).
+    #
     # By default, the constructor assesses if it's a long rule or not
     # based on the length of the value. But the 'long' feature can be
-    # explicitly specified with the third parameter.
-    def initialize(value, tag=nil, long=nil)
+    # explicitly specified with the :long feature.
+    def initialize(value, features=nil)
       @value = value || ''
-      @tag = tag
+      features = DEFAULT_RULE_FEATURES.merge(features || {})
+      @tag = features[:tag]
+      @id = features[:id]
       # check if long is a boolean
-      @long = long == !!long ? long : @value.size > MAX_STD_RULE_VALUE_LENGTH
+      _long = features[:long]
+      @long = _long == !!_long ? _long : @value.size > MAX_STD_RULE_VALUE_LENGTH
       @error = nil
     end
 
@@ -70,6 +85,7 @@ module PowerTrack
     def to_hash
       res = {:value => @value}
       res[:tag] = @tag unless @tag.nil?
+      res[:id] = @id unless @id.nil?
       res
     end
 

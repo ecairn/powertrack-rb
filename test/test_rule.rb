@@ -12,7 +12,7 @@ class TestRule < Minitest::Test
     assert rule.valid?
     assert_nil rule.error
 
-    rule = PowerTrack::Rule.new('pepsi', 'soda', true)
+    rule = PowerTrack::Rule.new('pepsi', tag: 'soda', long: true)
     assert_equal 'pepsi', rule.value
     assert_equal 'soda', rule.tag
     assert rule.long?
@@ -22,12 +22,12 @@ class TestRule < Minitest::Test
 
   def test_too_long_tag
     long_tag = 'a' * PowerTrack::Rule::MAX_TAG_LENGTH
-    rule = PowerTrack::Rule.new('coke', long_tag, false)
+    rule = PowerTrack::Rule.new('coke', tag: long_tag, long: false)
     assert rule.valid?
     assert_nil rule.error
 
     long_tag = 'b' * 2 * PowerTrack::Rule::MAX_TAG_LENGTH
-    rule = PowerTrack::Rule.new('coke', long_tag, true)
+    rule = PowerTrack::Rule.new('coke', tag: long_tag, long: true)
     assert !rule.valid?
     assert_match /too long tag/i, rule.error
   end
@@ -38,13 +38,13 @@ class TestRule < Minitest::Test
     assert rule.valid?
 
     long_val = 'c' * PowerTrack::Rule::MAX_LONG_RULE_VALUE_LENGTH
-    rule = long_val.to_pwtk_rule(nil, false)
+    rule = long_val.to_pwtk_rule(long: false)
 
     assert !rule.valid?
     assert_match /too long value/i, rule.error
 
     assert long_val.to_pwtk_rule.valid?
-    assert long_val.to_pwtk_rule(nil, true).valid?
+    assert long_val.to_pwtk_rule(long: true).valid?
 
     very_long_val = 'rrr' * PowerTrack::Rule::MAX_LONG_RULE_VALUE_LENGTH
     rule = very_long_val.to_pwtk_rule
@@ -59,18 +59,18 @@ class TestRule < Minitest::Test
     assert rule.valid?
     assert_nil rule.error
 
-    long_rule = PowerTrack::Rule.new(phrase, nil, true)
+    long_rule = PowerTrack::Rule.new(phrase, long: true)
     assert long_rule.long?
     assert long_rule.valid?
     assert_nil long_rule.error
 
     phrase = ([ 'coke' ] * (2 * PowerTrack::Rule::MAX_POSITIVE_TERMS)).join(' ')
-    rule = PowerTrack::Rule.new(phrase, nil, false)
+    rule = PowerTrack::Rule.new(phrase, long: false)
     assert !rule.long?
     assert !rule.valid?
     assert_match /too many positive terms/i, rule.error
 
-    long_rule = PowerTrack::Rule.new(phrase, nil, true)
+    long_rule = PowerTrack::Rule.new(phrase, long: true)
     assert long_rule.long?
     assert long_rule.valid?
     assert_nil long_rule.error
@@ -93,7 +93,7 @@ class TestRule < Minitest::Test
     assert rule.valid?
     assert_nil rule.error
 
-    long_rule = PowerTrack::Rule.new(phrase, nil, true)
+    long_rule = PowerTrack::Rule.new(phrase, long: true)
     assert long_rule.long?
     assert long_rule.valid?
     assert_nil long_rule.error
@@ -104,7 +104,7 @@ class TestRule < Minitest::Test
     assert !rule.valid?
     assert_match /too many negative terms/i, rule.error
 
-    long_rule = PowerTrack::Rule.new(phrase, nil, true)
+    long_rule = PowerTrack::Rule.new(phrase, long: true)
     assert long_rule.long?
     assert long_rule.valid?
     assert_nil long_rule.error
@@ -125,7 +125,7 @@ class TestRule < Minitest::Test
     assert_equal MultiJson.encode(res), rule.to_json
 
     res[:tag] = 'soda'
-    rule = PowerTrack::Rule.new(res[:value], res[:tag], true)
+    rule = PowerTrack::Rule.new(res[:value], tag: res[:tag], long: true)
     assert_equal res, rule.to_hash
     assert_equal MultiJson.encode(res), rule.to_json
   end
@@ -141,9 +141,9 @@ class TestRule < Minitest::Test
 
   def test_hash
     short_rule = PowerTrack::Rule.new('coke')
-    not_long_rule = PowerTrack::Rule.new('coke', nil, false)
-    false_long_rule = PowerTrack::Rule.new('coke', nil, true)
-    short_rule_with_tag = PowerTrack::Rule.new('coke', 'soda')
+    not_long_rule = PowerTrack::Rule.new('coke', long: false)
+    false_long_rule = PowerTrack::Rule.new('coke', long: true)
+    short_rule_with_tag = PowerTrack::Rule.new('coke', tag: 'soda')
 
     assert short_rule == not_long_rule
     assert_equal short_rule, not_long_rule
@@ -158,6 +158,6 @@ class TestRule < Minitest::Test
     assert_equal 2, h[short_rule]
     assert_equal h[short_rule], h[not_long_rule]
     assert_equal 4, h[short_rule_with_tag]
-    assert_nil h[PowerTrack::Rule.new('pepsi', 'soda')]
+    assert_nil h[PowerTrack::Rule.new('pepsi', tag: 'soda')]
   end
 end

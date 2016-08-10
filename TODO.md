@@ -60,7 +60,7 @@ See [Data format](http://support.gnip.com/sources/twitter/data_format.html)
 * _[DONE]_ Support Original output format
 * _[DONE]_ Support Activity Stream output format
 * _[DONE]_ Support raw format
-*
+
 * _[OUT]_ Manage retweets.
   See [Identifying and Understanding retweets](http://support.gnip.com/articles/identifying-and-understanding-retweets.html)
 
@@ -71,8 +71,8 @@ See [Managing disconnections](http://support.gnip.com/articles/disconnections-ex
 * _[DONE]_ Reconnect after disconnect. See
   [Disconnections & Reconnecting](http://support.gnip.com/apis/consuming_streaming_data.html#Disconnections)
 * _[DONE]_ Reconnect using an exponential backoff pattern.
-* _[DONE]_ Support Backfill
-* Support Replay
+* _[DONE]_ Support Backfill (v1)
+* _[DONE]_ Support Replay (v1)
 * Reconnect when there's a GNIP server issue signaled by the 503 HTTP response status
 
 ## Other features
@@ -80,4 +80,24 @@ See [Managing disconnections](http://support.gnip.com/articles/disconnections-ex
 * _[DONE]_ Support test and development streams
 * _[DONE]_ Support Replay mode (5-days back history)
 * Support status dashboard
-* Support Historical Powertrack
+* Support Historical PowerTrack
+
+## PowerTrack v2
+See [Migration Guide](http://support.gnip.com/apis/powertrack2.0/transition.html)
+and [PowerTrack API v2](http://support.gnip.com/apis/powertrack2.0/index.html).
+
+* _[DONE]_ Support both v1 and v2 with the same interface/class
+* _[DONE]_ Support new endpoint URLs
+* Support rule validator
+* Support new operators and quoted tweet filtering.
+  Double-check with tests that the gem does not prevent their usage
+* _[DONE]_ Support new backfill behavior
+  * _[DONE]_ Support fixed backfill period used at first connection
+  * _[DONE]_ Support fixed backfill period used at each reconnect
+  * Support dynamic backfill period at each reconnect, calibrated according to
+    the number of minutes the stream was disconnected. Emit a warning if the
+    stream was disconnected more than 5 minutes (tweets were probably lost)
+* _[DONE]_ Use HTTP POST verb (instead of DELETE) for rule deletions
+* _[DONE]_ Fallback to v1 when Replay mode wants to use v2. Emit a warning.
+* Support Replay v2
+  [Replay API 2.0 Reference](http://support.gnip.com/apis/replay2.0/api_reference.html)

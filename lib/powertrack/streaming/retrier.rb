@@ -22,7 +22,7 @@ module PowerTrack
       max_elapsed_time: DEFAULT_MAX_ELAPSED_TIME,
       multiplier: DEFAULT_INTERVAL_MULTIPLIER,
       randomize_factor: DEFAULT_RANDOMIZE_FACTOR
-    }
+    }.freeze
 
     # Builds a retrier that will retry a maximum retries number of times.
     def initialize(max_retries, options=nil)
