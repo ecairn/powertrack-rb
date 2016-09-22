@@ -21,8 +21,8 @@ module PowerTrack
     FEATURE_URL_FORMAT = {
       # [ hostname, account, source, mode, label, feature ]
       v1: "https://%s.gnip.com/accounts/%s/publishers/%s/%s/track/%s%s.json".freeze,
-      # [ hostname, feature, account, source, label, sub-feature ]
-      v2: "https://gnip-%s.twitter.com/%s/powertrack/accounts/%s/publishers/%s/%s%s.json".freeze
+      # [ hostname, domain, feature, stream type, account, source, label, sub-feature ]
+      v2: "https://gnip-%s.%s.com/%s/%s/accounts/%s/publishers/%s/%s%s.json".freeze
     }.freeze
 
     # The default timeout on a connection to PowerTrack. Can be overriden per call.
@@ -68,10 +68,7 @@ module PowerTrack
       @options = DEFAULT_STREAM_OPTIONS.merge(options || {})
       @replay = !!@options[:replay]
       @client_id = @options[:client_id]
-      @stream_mode = @replay ? 'replay' : 'streams'
-
-      # force v1 if Replay activated
-      @v2 = !@replay && !!@options[:v2]
+      @v2 = !!@options[:v2]
     end
 
     # Adds many rules to your PowerTrack stream’s ruleset.
@@ -181,22 +178,30 @@ module PowerTrack
     def feature_url(hostname, feature=nil, sub_feature=nil)
       _url = nil
       if @v2
-        feature ||= hostname
+        feature ||= @replay ? 'replay' : hostname
         sub_feature = sub_feature ? "/#{sub_feature}" : ''
+        stream_type = (feature == 'rules' && @replay ? 'powertrack-replay' : 'powertrack')
+        # replay streaming is on gnip.com while replay rules are on twitter.com...
+        domain = (feature == 'replay' && @replay  ? 'gnip' : 'twitter')
+
         _url = FEATURE_URL_FORMAT[:v2] %
                 [ hostname,
+                  domain,
                   feature,
+                  stream_type,
                   @account_name,
                   @data_source,
                   @label,
                   sub_feature ]
       else
         feature = feature ? "/#{feature}" : ''
+        mode = @replay ? 'replay' : 'streams'
+
         _url = FEATURE_URL_FORMAT[:v1] %
                 [ hostname,
                   @account_name,
                   @data_source,
-                  @stream_mode,
+                  mode,
                   @label,
                   feature ]
 

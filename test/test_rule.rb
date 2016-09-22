@@ -12,12 +12,20 @@ class TestRule < Minitest::Test
     assert rule.valid?
     assert_nil rule.error
 
-    rule = PowerTrack::Rule.new('pepsi', tag: 'soda', long: true)
-    assert_equal 'pepsi', rule.value
-    assert_equal 'soda', rule.tag
-    assert rule.long?
-    assert rule.valid?
-    assert_nil rule.error
+    long_rule = PowerTrack::Rule.new('pepsi', tag: 'soda', long: true)
+    assert_equal 'pepsi', long_rule.value
+    assert_equal 'soda', long_rule.tag
+    assert long_rule.long?
+    assert long_rule.valid?
+    assert_nil long_rule.error
+
+    v2_rule = PowerTrack::Rule.new('dr pepper', tag: 'soda', v2: true)
+    assert v2_rule.v2?
+    assert_equal 'dr pepper', v2_rule.value
+    assert_equal 'soda', v2_rule.tag
+    assert v2_rule.long?
+    assert v2_rule.valid?
+    assert_nil v2_rule.error
   end
 
   def test_too_long_tag
@@ -34,22 +42,40 @@ class TestRule < Minitest::Test
 
   def test_too_long_value
     long_val = 'a' * PowerTrack::Rule::MAX_STD_RULE_VALUE_LENGTH
+    # v1
     rule = PowerTrack::Rule.new(long_val)
     assert rule.valid?
 
-    long_val = 'c' * PowerTrack::Rule::MAX_LONG_RULE_VALUE_LENGTH
-    rule = long_val.to_pwtk_rule(long: false)
+    # v2
+    v2_rule = PowerTrack::Rule.new(long_val, v2: true)
+    assert v2_rule.v2?
+    assert v2_rule.valid?
+    assert_nil v2_rule.error
 
+    long_val = 'c' * PowerTrack::Rule::MAX_LONG_RULE_VALUE_LENGTH
+    # v1
+    rule = long_val.to_pwtk_rule(long: false)
     assert !rule.valid?
     assert_match /too long value/i, rule.error
 
     assert long_val.to_pwtk_rule.valid?
     assert long_val.to_pwtk_rule(long: true).valid?
 
+    # v2
+    assert long_val.to_pwtk_rule(v2: true).valid?
+    assert long_val.to_pwtk_rule(long: false, v2: true).valid?
+
     very_long_val = 'rrr' * PowerTrack::Rule::MAX_LONG_RULE_VALUE_LENGTH
+    # v1
     rule = very_long_val.to_pwtk_rule
     assert !rule.valid?
     assert_match /too long value/i, rule.error
+
+    # v2
+    v2_rule = very_long_val.to_pwtk_rule(v2: true)
+    assert v2_rule.v2?
+    assert !v2_rule.valid?
+    assert_match /too long value/i, v2_rule.error
   end
 
   def test_too_many_positive_terms
@@ -64,11 +90,25 @@ class TestRule < Minitest::Test
     assert long_rule.valid?
     assert_nil long_rule.error
 
+    # v2
+    v2_rule = PowerTrack::Rule.new(phrase, v2: true)
+    assert v2_rule.v2?
+    assert v2_rule.long?
+    assert v2_rule.valid?
+    assert_nil v2_rule.error
+
     phrase = ([ 'coke' ] * (2 * PowerTrack::Rule::MAX_POSITIVE_TERMS)).join(' ')
+    # v1
     rule = PowerTrack::Rule.new(phrase, long: false)
     assert !rule.long?
     assert !rule.valid?
     assert_match /too many positive terms/i, rule.error
+    # v2
+    v2_rule = PowerTrack::Rule.new(phrase, v2: true)
+    assert v2_rule.v2?
+    assert v2_rule.long?
+    assert v2_rule.valid?
+    assert_nil v2_rule.error
 
     long_rule = PowerTrack::Rule.new(phrase, long: true)
     assert long_rule.long?
@@ -84,6 +124,11 @@ class TestRule < Minitest::Test
     long_rule = PowerTrack::Rule.new(phrase + " OR from:michel")
     assert !rule.valid?
     assert_match /too many positive terms/i, rule.error
+
+    v2_rule = PowerTrack::Rule.new(phrase + " OR from:michel", v2: true)
+    assert v2_rule.v2?
+    assert v2_rule.valid?
+    assert_nil v2_rule.error
   end
 
   def test_too_many_negative_terms
@@ -98,6 +143,12 @@ class TestRule < Minitest::Test
     assert long_rule.valid?
     assert_nil long_rule.error
 
+    v2_rule = PowerTrack::Rule.new(phrase, v2: true)
+    assert v2_rule.v2?
+    assert v2_rule.long?
+    assert v2_rule.valid?
+    assert_nil v2_rule.error
+
     phrase = ([ '-pepsi' ] * (2 * PowerTrack::Rule::MAX_POSITIVE_TERMS)).join(' ')
     rule = PowerTrack::Rule.new(phrase)
     assert !rule.long?
@@ -108,6 +159,12 @@ class TestRule < Minitest::Test
     assert long_rule.long?
     assert long_rule.valid?
     assert_nil long_rule.error
+
+    v2_rule = PowerTrack::Rule.new(phrase, v2: true)
+    assert v2_rule.v2?
+    assert v2_rule.long?
+    assert v2_rule.valid?
+    assert_nil v2_rule.error
   end
 
   def test_contains_negated_or
@@ -116,6 +173,55 @@ class TestRule < Minitest::Test
     assert !rule.long?
     assert !rule.valid?
     assert_match /contains negated or/i, rule.error
+
+    v2_rule = PowerTrack::Rule.new(phrase, v2: true)
+    assert v2_rule.v2?
+    assert v2_rule.long?
+    assert !v2_rule.valid?
+    assert_match /contains negated or/i, v2_rule.error
+  end
+
+  def test_contains_explicit_and
+    phrase = 'coke AND pepsi'
+    rule = PowerTrack::Rule.new(phrase)
+    assert !rule.long?
+    assert rule.valid?
+    assert_nil rule.error
+
+    v2_rule = PowerTrack::Rule.new(phrase, v2: true)
+    assert v2_rule.v2?
+    assert v2_rule.long?
+    assert !v2_rule.valid?
+    assert_match /contains explicit and/i, v2_rule.error
+  end
+
+  def test_contains_explicit_not
+    [ 'coke NOT pepsi', 'NOT (pepsi OR "dr pepper")' ].each do |phrase|
+      rule = PowerTrack::Rule.new(phrase)
+      assert !rule.long?
+      assert rule.valid?
+      assert_nil rule.error
+
+      v2_rule = PowerTrack::Rule.new(phrase, v2: true)
+      assert v2_rule.v2?
+      assert v2_rule.long?
+      assert !v2_rule.valid?
+      assert_match /contains explicit not/i, v2_rule.error
+    end
+  end
+
+  def test_contains_lowercase_or
+    phrase = 'coke or pepsi'
+    rule = PowerTrack::Rule.new(phrase)
+    assert !rule.long?
+    assert rule.valid?
+    assert_nil rule.error
+
+    v2_rule = PowerTrack::Rule.new(phrase, v2: true)
+    assert v2_rule.v2?
+    assert v2_rule.long?
+    assert !v2_rule.valid?
+    assert_match /contains lowercase or/i, v2_rule.error
   end
 
   def test_to_hash_and_json

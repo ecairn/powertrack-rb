@@ -12,8 +12,12 @@ class TestManageRules < Minitest::Test
     add_then_delete_a_single_rule(true, false)
   end
 
-  def test_add_then_delete_a_single_rule_in_replay_mode
+  def test_add_then_delete_a_single_rule_in_replay_mode_v1
     add_then_delete_a_single_rule(false, true)
+  end
+
+  def test_add_then_delete_a_single_rule_in_replay_mode_v2
+    add_then_delete_a_single_rule(true, true)
   end
 
   def add_then_delete_a_single_rule(v2, replay)

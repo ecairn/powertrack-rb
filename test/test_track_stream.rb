@@ -16,9 +16,9 @@ class TestTrackStream < Minitest::Test
     track_simple_stream(false, true)
   end
 
-#  def test_track_replay_stream_v2
-#    track_simple_stream(true, true)
-#  end
+  def test_track_replay_stream_v2
+    track_simple_stream(true, true)
+  end
 
   def track_simple_stream(v2, replay)
     stream = new_stream(v2, replay)

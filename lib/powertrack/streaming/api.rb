@@ -21,6 +21,7 @@ module PowerTrack
     # Removes the specified rules from the stream.
     #
     # <tt>DELETE /rules</tt>
+    # <tt>POST /rules?method=_delete</tt>
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#DeleteRules
     def delete_rules(*rules)
@@ -30,6 +31,7 @@ module PowerTrack
     # Removes the specified rule from the stream.
     #
     # <tt>DELETE /rules</tt>
+    # <tt>POST /rules?method=_delete</tt>
     #
     # See http://support.gnip.com/apis/powertrack/api_reference.html#DeleteRules
     def delete_rule(rule)

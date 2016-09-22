@@ -36,7 +36,7 @@ class Minitest::Test
       powertrack_config[:password],
       powertrack_config[:account_name],
       powertrack_config[:data_source],
-      replay ? 'prod' : (v2 ? 'prod2' : powertrack_config[:stream_label]),
+      replay ? 'prod' : powertrack_config[:stream_label],
       replay: replay,
       v2: v2)
   end

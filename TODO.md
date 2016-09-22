@@ -99,5 +99,5 @@ and [PowerTrack API v2](http://support.gnip.com/apis/powertrack2.0/index.html).
     stream was disconnected more than 5 minutes (tweets were probably lost)
 * _[DONE]_ Use HTTP POST verb (instead of DELETE) for rule deletions
 * _[DONE]_ Fallback to v1 when Replay mode wants to use v2. Emit a warning.
-* Support Replay v2
+* _[DONE]_ Support Replay v2
   [Replay API 2.0 Reference](http://support.gnip.com/apis/replay2.0/api_reference.html)

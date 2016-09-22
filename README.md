@@ -147,9 +147,14 @@ o The Backfill feature is configured by the ```:backfill_minutes``` option passe
   option to the ```PowerTrack::Stream``` initializer (which is simply ignored
   when v2 is turned on). The new option specifies a number of minutes of backfill
   data to receive.
-o The Replay feature still uses v1 even if you explicitly turn v2 on. Support
-  for [Replay v2](http://support.gnip.com/apis/replay2.0/api_reference.html) is
-  planned but not scheduled yet.
+o A v2 ```PowerTrack::Rule``` instance (initialized by passing the ```v2: true```
+  feature to the constructor) has a few specificities described in
+  [Migrating PowerTrack Rules from Version 1.0 to 2.0](http://support.gnip.com/articles/migrating-powertrack-rules.html).
+
+  In particular,
+  o it is always long (accepting up to 2048 characters),
+  o it has no limits on the number of positive or negative terms used,
+  o it forbids the usage of *AND*, *or* and *NOT* logical phrases.
 
 Finally, PowerTrack v2 has a new endpoint for rule validation that is not
 supported by this library yet.

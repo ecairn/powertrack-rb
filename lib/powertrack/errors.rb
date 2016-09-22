@@ -73,6 +73,14 @@ module PowerTrack
     end
   end
 
+  # Invalid Endpoint. This occurs when your client tries to connect to an
+  # endpoint URL that does not exist.
+  class InvalidEndpoint < PredefinedStatusPowerTrackError
+    def initialize(message, body)
+      super(404, message, body)
+    end
+  end
+
   # Generally, this occurs where your client fails to properly include the
   # headers to accept gzip encoding from the stream, but can occur in other
   # circumstances as well.
