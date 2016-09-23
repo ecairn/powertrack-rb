@@ -22,6 +22,7 @@ class TestTrackStream < Minitest::Test
 
   def track_simple_stream(v2, replay)
     stream = new_stream(v2, replay)
+    assert_equal !!v2, stream.v2?
 
     # add a logger
     stream.logger = Logger.new(STDERR)
@@ -99,10 +100,9 @@ class TestTrackStream < Minitest::Test
       assert_nil res
       assert replay || closed, 'Stream not closed'
 
-      if replay
-        assert (ended_at - started_at) <= delay
-      else
-        assert (ended_at - started_at) >= delay
+      # a replay may take longer than the delay it passes over...
+      unless replay
+        assert (ended_at - started_at) >= delay, "#{ended_at - started_at}s < #{delay}s"
       end
 
       # heartbeats only sent every 10 minutes in v2...

@@ -1,6 +1,11 @@
 v1.3.0
 ------
 
+  * Add the PowerTrack::Stream.v2? instance method
+
+v1.3.0
+------
+
   * Support Replay v2
   * Support specificities of rules v2 in PowerTrack::Rule class
 

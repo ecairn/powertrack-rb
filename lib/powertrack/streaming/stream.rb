@@ -71,6 +71,11 @@ module PowerTrack
       @v2 = !!@options[:v2]
     end
 
+    # Returns true if the stream uses PowerTrack v2
+    def v2?
+      @v2
+    end
+
     # Adds many rules to your PowerTrack stream’s ruleset.
     #
     # <tt>POST /rules</tt>
