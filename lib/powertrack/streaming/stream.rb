@@ -389,8 +389,8 @@ module PowerTrack
           to = options[:to] || (now - 30*60)
 
           get_opts[:query].merge!({
-            'fromDate' => from.utc.strftime(REPLAY_TIMESTAMP_FORMAT),
-            'toDate' => to.utc.strftime(REPLAY_TIMESTAMP_FORMAT)
+            'fromDate' => from.new_offset(0).strftime(REPLAY_TIMESTAMP_FORMAT),
+            'toDate' => to.new_offset(0).strftime(REPLAY_TIMESTAMP_FORMAT)
           })
 
           logger.info "Replay mode enabled from '#{from}' to '#{to}'"
