@@ -128,15 +128,19 @@ replaying the same timeframe again and again when GNIP is unstable.
 All the errors that come from PowerTrack are defined through an ad-hoc exception
 class hierarchy. See ```lib/powertrack/errors.rb```.
 
+## PowerTrack v1
+
+The library was originally designed for PowerTrack v1. But this version of the
+PowerTrack API was sunset in early January 2017.
+
+Consequently, since v2.0, the library does not support v1 anymore.
+
 ## PowerTrack v2
 
-The library provides early support for PowerTrack API version 2. Please read
+The library provides support for PowerTrack API version 2. Please read
 [PowerTrack API v2](http://support.gnip.com/apis/powertrack2.0/index.html) and
 the [Migration Guide](http://support.gnip.com/apis/powertrack2.0/transition.html)
 for details about this new major release.
-
-Set the ```:v2```option to ```true``` when building a ```PowerTrack::Stream```
-object to enable this feature. The library uses v1 by default.
 
 Everything should work the same for v2 as for v1 except
 

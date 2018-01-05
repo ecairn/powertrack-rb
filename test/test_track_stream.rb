@@ -4,25 +4,16 @@ require 'multi_json'
 
 class TestTrackStream < Minitest::Test
 
-  def test_track_realtime_stream_v1
-    track_simple_stream(false, false)
+  def test_track_realtime_stream
+    track_simple_stream(false)
   end
 
-  def test_track_realtime_stream_v2
-    track_simple_stream(true, false)
+  def test_track_replay_stream
+    track_simple_stream(true)
   end
 
-  def test_track_replay_stream_v1
-    track_simple_stream(false, true)
-  end
-
-  def test_track_replay_stream_v2
-    track_simple_stream(true, true)
-  end
-
-  def track_simple_stream(v2, replay)
-    stream = new_stream(v2, replay)
-    assert_equal !!v2, stream.v2?
+  def track_simple_stream(replay)
+    stream = new_stream(replay)
 
     # add a logger
     stream.logger = Logger.new(STDERR)
@@ -33,18 +24,14 @@ class TestTrackStream < Minitest::Test
     begin
       res = stream.add_rule(new_rule)
 
-      if v2
-        assert res.is_a?(Hash)
-        assert res['summary'].is_a?(Hash)
-      else
-        assert_nil res
-      end
+      assert res.is_a?(Hash)
+      assert res['summary'].is_a?(Hash)
 
       rules_after_addition = stream.list_rules
       assert rules_after_addition.is_a?(Array)
       assert rules_after_addition.size > 0
       assert rules_after_addition.any? { |rule| rule == new_rule }
-      assert rules_after_addition.all? { |rule| !rule.id.nil? } if v2
+      assert rules_after_addition.all? { |rule| !rule.id.nil? }
 
       heartbeats = 0
       received = 0
@@ -106,8 +93,12 @@ class TestTrackStream < Minitest::Test
       end
 
       # heartbeats only sent every 10 minutes in v2...
-      assert heartbeats > 0, 'No heartbeat received' unless v2
-      puts "#{heartbeats} heartbeats received"
+      unless replay
+        assert_equal 0, heartbeats, "Unexpected #{heartbeats} heartbeats received"
+      else
+        assert heartbeats > 0, 'No heartbeats received so far'
+        puts "#{heartbeats} heartbeats received"
+      end
 
       assert received > 0, 'No message received so far'
       puts "#{received} messages received"
@@ -119,14 +110,10 @@ class TestTrackStream < Minitest::Test
     ensure
       res = stream.delete_rules(new_rule)
 
-      if v2
-        assert res.is_a?(Hash)
-        assert res['summary'].is_a?(Hash)
-        assert_equal 1, res['summary']['deleted']
-        assert_equal 0, res['summary']['not_deleted']
-      else
-        assert_nil res
-      end
+      assert res.is_a?(Hash)
+      assert res['summary'].is_a?(Hash)
+      assert_equal 1, res['summary']['deleted']
+      assert_equal 0, res['summary']['not_deleted']
     end
   end
 end

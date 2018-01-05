@@ -1,4 +1,10 @@
-v1.3.0
+v2.0.0
+------
+
+  * Remove support for PowerTrack v1 since this version was sunset in early
+    January 2017
+
+v1.3.1
 ------
 
   * Add the PowerTrack::Stream.v2? instance method

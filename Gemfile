@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 group :test do
-  gem 'yajl-ruby', '~> 1.0', require: 'yajl'
+  gem 'yajl-ruby', '~> 1.3.1', require: 'yajl'
 end
 
 # Specify your gem's dependencies in powertrack-rb.gemspec

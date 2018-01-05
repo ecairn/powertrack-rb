@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    powertrack (1.3.1)
+    powertrack (2.0.0)
       em-http-request (~> 1.1)
       eventmachine (~> 1.0)
       exponential-backoff (~> 0.0.2)
@@ -29,7 +29,7 @@ GEM
     rake (10.4.2)
     ruby-prof (0.15.8)
     void_logger (0.1)
-    yajl-ruby (1.2.1)
+    yajl-ruby (1.3.1)
 
 PLATFORMS
   ruby
@@ -40,4 +40,7 @@ DEPENDENCIES
   powertrack!
   rake (~> 10.3)
   ruby-prof (~> 0.15)
-  yajl-ruby (~> 1.0)
+  yajl-ruby (~> 1.3.1)
+
+BUNDLED WITH
+   1.10.6

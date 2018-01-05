@@ -17,13 +17,9 @@ module PowerTrack
     # Includes a logger, void by default
     include VoidLogger::LoggerMixin
 
-    # The format of the URLs to connect to the various stream services
-    FEATURE_URL_FORMAT = {
-      # [ hostname, account, source, mode, label, feature ]
-      v1: "https://%s.gnip.com/accounts/%s/publishers/%s/%s/track/%s%s.json".freeze,
-      # [ hostname, domain, feature, stream type, account, source, label, sub-feature ]
-      v2: "https://gnip-%s.%s.com/%s/%s/accounts/%s/publishers/%s/%s%s.json".freeze
-    }.freeze
+    # The format of the URL to connect to the stream service
+    # [ hostname, domain, feature, stream type, account, source, label, sub-feature ]
+    FEATURE_URL_FORMAT = 'https://gnip-%s.%s.com/%s/%s/accounts/%s/publishers/%s/%s%s.json'.freeze
 
     # The default timeout on a connection to PowerTrack. Can be overriden per call.
     DEFAULT_CONNECTION_TIMEOUT = 30
@@ -34,14 +30,10 @@ module PowerTrack
 
     # The default options for using the stream.
     DEFAULT_STREAM_OPTIONS = {
-      # enable PowerTrack v2 API (using v1 by default)
-      v2: false,
       # override the default connection timeout
       connect_timeout: DEFAULT_CONNECTION_TIMEOUT,
       # override the default inactivity timeout
       inactivity_timeout: DEFAULT_INACTIVITY_TIMEOUT,
-      # use a client id if you want to leverage the Backfill feature in v1
-      client_id: nil,
       # enable the replay mode to get activities over the last 5 days
       # see http://support.gnip.com/apis/replay/api_reference.html
       replay: false
@@ -67,13 +59,6 @@ module PowerTrack
       @label = label
       @options = DEFAULT_STREAM_OPTIONS.merge(options || {})
       @replay = !!@options[:replay]
-      @client_id = @options[:client_id]
-      @v2 = !!@options[:v2]
-    end
-
-    # Returns true if the stream uses PowerTrack v2
-    def v2?
-      @v2
     end
 
     # Adds many rules to your PowerTrack stream’s ruleset.
@@ -95,11 +80,11 @@ module PowerTrack
     # See http://support.gnip.com/apis/powertrack/api_reference.html#DeleteRules
     def delete_rules(*rules)
       # v2 does not use DELETE anymore
-      delete_verb = @v2 ? :post : :delete
+      delete_verb = :post
       # flatten the rules in case it was provided as an array
       delete_options = { body: MultiJson.encode('rules' => rules.flatten) }
       # v2 uses a query parameter
-      delete_options[:query] = { '_method' => 'delete' } if @v2
+      delete_options[:query] = { '_method' => 'delete' }
 
       make_rules_request(delete_verb, delete_options)
     end
@@ -149,7 +134,7 @@ module PowerTrack
       from: nil,
       # the ending date to which the activities will be recovered (replay mode only)
       to: nil,
-      # specify a number of minutes to leverage the Backfill feature (v2 only)
+      # specify a number of minutes to leverage the Backfill feature
       backfill_minutes: nil,
       # called for each message received, except heartbeats
       on_message: nil,
@@ -181,39 +166,21 @@ module PowerTrack
 
     # Returns the URL of the stream for a given feature.
     def feature_url(hostname, feature=nil, sub_feature=nil)
-      _url = nil
-      if @v2
-        feature ||= @replay ? 'replay' : hostname
-        sub_feature = sub_feature ? "/#{sub_feature}" : ''
-        stream_type = (feature == 'rules' && @replay ? 'powertrack-replay' : 'powertrack')
-        # replay streaming is on gnip.com while replay rules are on twitter.com...
-        domain = (feature == 'replay' && @replay  ? 'gnip' : 'twitter')
+      feature ||= @replay ? 'replay' : hostname
+      sub_feature = sub_feature ? "/#{sub_feature}" : ''
+      stream_type = (feature == 'rules' && @replay ? 'powertrack-replay' : 'powertrack')
+      # replay streaming is on gnip.com while replay rules are on twitter.com...
+      domain = (feature == 'replay' && @replay  ? 'gnip' : 'twitter')
 
-        _url = FEATURE_URL_FORMAT[:v2] %
-                [ hostname,
-                  domain,
-                  feature,
-                  stream_type,
-                  @account_name,
-                  @data_source,
-                  @label,
-                  sub_feature ]
-      else
-        feature = feature ? "/#{feature}" : ''
-        mode = @replay ? 'replay' : 'streams'
-
-        _url = FEATURE_URL_FORMAT[:v1] %
-                [ hostname,
-                  @account_name,
-                  @data_source,
-                  mode,
-                  @label,
-                  feature ]
-
-        _url += "?client=#{@client_id}" if @client_id
-      end
-
-      _url
+      FEATURE_URL_FORMAT %
+        [ hostname,
+          domain,
+          feature,
+          stream_type,
+          @account_name,
+          @data_source,
+          @label,
+          sub_feature ]
     end
 
     # Returns the HTTP header that turns on GZip-based compression if required.
@@ -396,7 +363,7 @@ module PowerTrack
           logger.info "Replay mode enabled from '#{from}' to '#{to}'"
         end
 
-        if @v2 && backfill_minutes
+        if backfill_minutes
           get_opts[:query]['backfillMinutes'] = backfill_minutes
         end
 

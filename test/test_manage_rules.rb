@@ -4,24 +4,16 @@ require 'multi_json'
 
 class TestManageRules < Minitest::Test
 
-  def test_add_then_delete_a_single_rule_v1
-    add_then_delete_a_single_rule(false, false)
+  def test_add_then_delete_a_single_rule
+    add_then_delete_a_single_rule(false)
   end
 
-  def test_add_then_delete_a_single_rule_v2
-    add_then_delete_a_single_rule(true, false)
+  def test_add_then_delete_a_single_rule_in_replay_mode
+    add_then_delete_a_single_rule(true)
   end
 
-  def test_add_then_delete_a_single_rule_in_replay_mode_v1
-    add_then_delete_a_single_rule(false, true)
-  end
-
-  def test_add_then_delete_a_single_rule_in_replay_mode_v2
-    add_then_delete_a_single_rule(true, true)
-  end
-
-  def add_then_delete_a_single_rule(v2, replay)
-    stream = new_stream(v2, replay)
+  def add_then_delete_a_single_rule(replay)
+    stream = new_stream(replay)
 
     # add a logger
     stream.logger = Logger.new(STDERR)
@@ -32,30 +24,26 @@ class TestManageRules < Minitest::Test
     pre_existing_rules = stream.list_rules
     $stderr.puts pre_existing_rules.inspect
     assert pre_existing_rules.is_a?(Array)
-    assert pre_existing_rules.all? { |rule| !rule.id.nil? } if v2
+    assert pre_existing_rules.all? { |rule| !rule.id.nil? }
 
     already_in = pre_existing_rules.any? { |rule| new_rule == rule }
 
     res = stream.add_rule(new_rule)
 
-    if v2
-      assert res.is_a?(Hash)
-      assert res['summary'].is_a?(Hash)
+    assert res.is_a?(Hash)
+    assert res['summary'].is_a?(Hash)
 
-      if already_in
-        assert_equal 0, res['summary']['created']
-        assert_equal 1, res['summary']['not_created']
-      else
-        assert_equal 1, res['summary']['created']
-        assert_equal 0, res['summary']['not_created']
-      end
+    if already_in
+      assert_equal 0, res['summary']['created']
+      assert_equal 1, res['summary']['not_created']
     else
-      assert_nil res
+      assert_equal 1, res['summary']['created']
+      assert_equal 0, res['summary']['not_created']
     end
 
     rules_after_addition = stream.list_rules
     assert rules_after_addition.is_a?(Array)
-    assert rules_after_addition.all? { |rule| !rule.id.nil? } if v2
+    assert rules_after_addition.all? { |rule| !rule.id.nil? }
 
     if already_in
       assert_equal pre_existing_rules.size, rules_after_addition.size
@@ -67,19 +55,15 @@ class TestManageRules < Minitest::Test
 
     res = stream.delete_rules(new_rule)
 
-    if v2
-      assert res.is_a?(Hash)
-      assert res['summary'].is_a?(Hash)
-      assert_equal 1, res['summary']['deleted']
-      assert_equal 0, res['summary']['not_deleted']
-    else
-      assert_nil res
-    end
+    assert res.is_a?(Hash)
+    assert res['summary'].is_a?(Hash)
+    assert_equal 1, res['summary']['deleted']
+    assert_equal 0, res['summary']['not_deleted']
 
     rules_after_removal = stream.list_rules
     assert rules_after_removal.is_a?(Array)
     assert_equal rules_after_addition.size - 1, rules_after_removal.size
     assert_equal [], rules_after_removal - rules_after_addition
-    assert rules_after_removal.all? { |rule| !rule.id.nil? } if v2
+    assert rules_after_removal.all? { |rule| !rule.id.nil? }
   end
 end
