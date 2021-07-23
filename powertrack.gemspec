@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description   = spec.summary
   spec.homepage      = 'https://github.com/ecairn/powertrack-rb'
   spec.license       = 'MIT license'
-  spec.required_ruby_version = '>= 1.9'
+  spec.required_ruby_version = '>= 2.3'
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }

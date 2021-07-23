@@ -1,6 +1,8 @@
 # powertrack
 A Ruby gem for building GNIP PowerTrack streaming clients.
 
+Require Ruby 2.3 or above.
+
 ## How to use it ?
 
 1. Create a PowerTrack stream based on your credentials

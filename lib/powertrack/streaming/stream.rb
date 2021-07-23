@@ -198,6 +198,7 @@ module PowerTrack
     # Each call returns a new hash which can be safely modified by the caller.
     def connection_headers
       { connect_timeout: @options[:connect_timeout],
+        ssl: {verify_peer: true},
         inactivity_timeout: @options[:inactivity_timeout] }
     end
 
